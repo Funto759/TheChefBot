@@ -5,7 +5,7 @@ plugins {
     id ("kotlin-kapt")
     id ("dagger.hilt.android.plugin")
     id ("org.jetbrains.kotlin.plugin.serialization")
-    alias(libs.plugins.google.gms.google.services)
+//    alias(libs.plugins.google.gms.google.services)
 }
 
 android {
@@ -64,6 +64,7 @@ dependencies {
     // Declare the dependency for the Cloud Firestore library
     // When using the BoM, you don't specify versions in Firebase library dependencies
     implementation("com.google.firebase:firebase-firestore")
+    implementation(libs.material3)
 //    implementation(libs.firebase.firestore.ktx)
 //    implementation(libs.firebase.firestore)
     testImplementation(libs.junit)
@@ -127,9 +128,9 @@ dependencies {
     implementation ("com.squareup.retrofit2:converter-gson:2.9.0")
 
     // Room Database
-    implementation("androidx.room:room-ktx:2.5.1")
-    kapt("androidx.room:room-compiler:2.5.1")
-    implementation("androidx.room:room-paging:2.5.1")
+    implementation("androidx.room:room-ktx:2.8.3")
+    kapt("androidx.room:room-compiler:2.8.3")
+    implementation("androidx.room:room-paging:2.8.3")
 
     // Coil
     implementation ("io.coil-kt:coil:1.1.1")
@@ -141,13 +142,16 @@ dependencies {
 
     implementation("io.coil-kt:coil-compose:2.7.0")
 
-    implementation("com.facebook.android:facebook-android-sdk:16.3.0")
-    implementation("com.google.android.gms:play-services-auth:21.1.1")
+//    implementation("com.facebook.android:facebook-android-sdk:16.3.0")
+//    implementation("com.google.android.gms:play-services-auth:21.1.1")
+//
+//
+//    implementation("com.google.gms:google-services:4.4.2")
 
-
-    implementation("com.google.gms:google-services:4.4.2")
-
-    implementation("org.koin:koin-android:3.2.0")
-    implementation("org.koin:koin-androidx-viewmodel:3.2.0")
-    implementation("org.koin:koin-androidx-scope:3.2.0")
+    implementation("io.insert-koin:koin-android:4.0.2")
+    implementation("io.insert-koin:koin-androidx-compose:4.0.2")
+    implementation("io.insert-koin:koin-core:4.0.2")
+//    implementation(libs.room.runtime)
+//    implementation(libs.room.ktx)
+//    kapt(libs.room.compiler)
 }
