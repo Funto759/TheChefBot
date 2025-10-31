@@ -9,6 +9,9 @@ import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -18,10 +21,14 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
+import androidx.compose.material.icons.filled.ContentPaste
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -46,18 +53,18 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
-import com.example.thechefbot.events.ChefScreenEvents
-import com.example.thechefbot.model.RecipeViewModel
-import com.example.thechefbot.state.ChefUiState
+
 import com.example.thechefbot.ui.theme.TheChefBotTheme
 import com.example.thechefbot.util.CommonUtil.copyToClipboard
 import com.example.thechefbot.util.CommonUtil.parseMarkdown
+import com.example.thechefbot.util.shimmer
 import com.google.firebase.platforminfo.DefaultUserAgentPublisher.component
 import org.koin.androidx.compose.koinViewModel
 import java.io.File
@@ -65,257 +72,182 @@ import java.util.UUID
 import kotlin.text.insert
 
 @Composable
-fun RecipeScreen(navHostController: NavHostController){
+fun RecipeScreenTest(){
+ChatMessageRow()
+}
 
-    val viewModel = koinViewModel<RecipeViewModel>()
-    val chefUiState by viewModel.chefUiState.collectAsStateWithLifecycle()
-    val context = LocalContext.current
-    var cameraUri by rememberSaveable { mutableStateOf<Uri?>(Uri.EMPTY) }
-    val keyboardController = LocalSoftwareKeyboardController.current
+@Composable
+fun ChatMessageRow(modifier: Modifier = Modifier) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(vertical = 12.dp)
+    ) {
 
-
-    fun saveImageToInternalStorage(context: Context, uri: Uri) {
-        val fileName = UUID.randomUUID().toString() + ".jpg"
-        val inputStream = context.contentResolver.openInputStream(uri)
-
-        val outputStream = context.openFileOutput(fileName, Context.MODE_PRIVATE)
-        inputStream?.use { input ->
-            outputStream.use { output ->
-                input.copyTo(output)
-            }
-        }
-
-        val savedImageFile = File(context.filesDir, fileName)
-
-        val savedImageUri: Uri = FileProvider.getUriForFile(
-            context,
-            "${context.packageName}.fileprovider",
-            savedImageFile
+        ChatBubble(
+            text = "How do i make an egusi meal",
+            timestamp = 11,
+            isUser = true,
+            isMarkdown = false
         )
 
-        viewModel.handleEvent(ChefScreenEvents.UpdateSelectedImage(savedImageUri))
-    }
+        Spacer(modifier = Modifier.height(8.dp))
 
-    val photoPicker = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.PickVisualMedia(),
-        onResult = { uri ->
-            uri?.let { saveImageToInternalStorage(context, it) }
-        }
-    )
-
-    val cameraLauncher =
-        rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { success ->
-            if (success) viewModel.handleEvent(ChefScreenEvents.UpdateSelectedImage(cameraUri))
-        }
-
-    val permissionLauncher =
-        rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
-            if (granted) {
-                cameraUri = context.contentResolver.insert(
-                    android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-                    android.content.ContentValues()
-                )
-                cameraUri?.let {
-                    cameraLauncher.launch(it)
-                }
-            } else {
-                Toast.makeText(context, "Permission Denied", Toast.LENGTH_SHORT).show()
-            }
-        }
-
-    fun launchPhotoPicker() =
-        photoPicker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
-
-
-    fun launchCamera(context: Context) {
-        if (ContextCompat.checkSelfPermission(
-                context, android.Manifest.permission.CAMERA
-            ) == PackageManager.PERMISSION_GRANTED
-        ) {
-            cameraUri = context.contentResolver.insert(
-                android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-                android.content.ContentValues()
-            )
-            cameraUri?.let {
-                cameraLauncher.launch(it)
-            }
-        } else {
-            permissionLauncher.launch(android.Manifest.permission.CAMERA)
-        }
-    }
-
-
-
-
-
-
-    FullScreen(
-        modifier = Modifier,
-        viewModel = viewModel,
-        chefUiState = chefUiState,
-        context = context,
-        launchCamera = { launchCamera(context) },
-        launchPhotoPicker = { launchPhotoPicker() }
-    )
-
-}
+        ChatBubble(
+            text = "8. Summary\n" +
+                    "\n" +
+                    "You're basically building a mini ChatGPT:\n" +
+                    "\n" +
+                    "Tables\n" +
+                    "\n" +
+                    "ChatSession(sessionId, title, lastUsedTimeStamp)\n" +
+                    "\n" +
+                    "ChatMessage(messageId, sessionOwnerId, prompt, answer, timestamp)\n" +
+                    "\n" +
+                    "DAOs\n" +
+                    "\n" +
+                    "ChatSessionDao to create/update/list sessions.\n" +
+                    "\n" +
+                    "ChatMessageDao to insert and load messages for a given session.\n" +
+                    "\n" +
+                    "Repository\n" +
+                    "\n" +
+                    "Knows how to:\n" +
+                    "\n" +
+                    "create or reuse the current session,\n" +
+                    "\n" +
+                    "insert messages,\n" +
+                    "\n" +
+                    "bump session recency.\n" +
+                    "\n" +
+                    "ViewModel\n" +
+                    "\n" +
+                    "Holds the active session,\n" +
+                    "\n" +
+                    "Exposes:\n" +
+                    "\n" +
+                    "allSessions (for recents screen),\n" +
+                    "\n" +
+                    "messagesForActiveSession (for chat screen),\n" +
+                    "\n" +
+                    "After every successful AI response:\n" +
+                    "\n" +
+                    "save prompt+answer to DB under that session.\n" +
+                    "\n" +
+                    "UI\n" +
+                    "\n" +
+                    "A “session list” screen like an inbox,\n" +
+                    "\n" +
+                    "A “chat screen” that streams messages for the chosen session.\n" +
+                    "\n" +
+                    "This structure gives you exactly what you asked for:\n" +
+                    "\n" +
+                    "“when i ask a prompt question the question, answer and timestamp should be saved to a db, that can be called to provide a list of all the prompts and answers made under that particular history”",
+            timestamp = 11,
+            isUser = false,
+            isMarkdown = true
+        )
 
 
+        Spacer(modifier = Modifier.height(8.dp))
 
 
-
-
-
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun FullScreen(modifier: Modifier = Modifier,viewModel: RecipeViewModel, chefUiState: ChefUiState,context: Context,
-               launchCamera: () -> Unit = {},
-               launchPhotoPicker: () -> Unit = {}) {
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {
-                    Text(text = "Recipe Generator")
-                },
-                actions = {
-                    IconButton(onClick = {}) {
-                        Icon(Icons.AutoMirrored.Filled.List, contentDescription = "History")
-                    }
-                }
-            )
-        },
-        floatingActionButton = {
-            FloatingActionButton(onClick = {
-                val enabled = chefUiState.prompt.isNotEmpty() || chefUiState.selectedImages != Uri.EMPTY
-
-                if (enabled) {
-                    if (chefUiState.imageMode){
-                        viewModel.handleEvent(ChefScreenEvents.GenerateRecipeWithImage(
-                            context = context,
-                            prompt = chefUiState.prompt,
-                            imageUri = chefUiState.selectedImages
-                        ))
-                    }else {
-                        viewModel.handleEvent(ChefScreenEvents.GenerateRecipe(prompt = chefUiState.prompt))
-                    }
-                }
-            }) {
-                Text(text = "Generate", modifier = modifier.padding(16.dp))
-            }
-        },
-        modifier = modifier.imePadding()
-    ) { innerPadding ->
-        Column(modifier = Modifier.padding(innerPadding)) {
-            if (!chefUiState.imageMode) {
-            Button(
-                onClick = {
-                    viewModel.handleEvent(ChefScreenEvents.ResetState(true))
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp)
-            ) {
-                Text("Generate based on Image Instead")
-            }
-            OutlinedTextField(
-                value = chefUiState.prompt,
-                label = { Text("Recipe Prompt") },
-                onValueChange = { viewModel.handleEvent(ChefScreenEvents.UpdatePrompt(it)) },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp)
-            )
-            } else {
-                Button(
-                    onClick = {
-                      viewModel.handleEvent(ChefScreenEvents.ResetState(false))
-
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp)
-                ) {
-                    Text("Generate based on Text Instead")
-                }
-                Row(modifier = Modifier.padding(16.dp)) {
-                    Button(onClick = { launchCamera() }, modifier = Modifier.weight(0.5f)) {
-                        Text("Camera")
-                    }
-                    Spacer(modifier = Modifier.padding(8.dp))
-                    Button(onClick = { launchPhotoPicker() }, modifier = Modifier.weight(0.5f)) {
-                        Text("Gallery")
-                    }
-                }
-                AsyncImage(
-                    model = chefUiState.selectedImages,
-                    contentDescription = null,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp)
-                        .height(150.dp),
-                    contentScale = ContentScale.FillWidth
-                )
-            }
-
-            if (chefUiState.loading) {
-                CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally))
-            } else {
-                var textColor = MaterialTheme.colorScheme.onSurface
-                if (chefUiState.errorState) {
-                    textColor = MaterialTheme.colorScheme.error
-                } else if (chefUiState.success) {
-                    textColor = MaterialTheme.colorScheme.onSurface
-
-                }
-                val scrollState = rememberScrollState()
-                Column {
-                    if (chefUiState.result.isNotEmpty()) {
-                        Button(
-                            onClick = {
-                                copyToClipboard(context, chefUiState.result)
-                            },
-                            Modifier.padding(start = 16.dp)
-                        ) {
-                            Text("Copy this Recipe!")
-                        }
-                    }
-                    MarkdownViewer(
-                        markdownText = if (!chefUiState.errorState) chefUiState.result else chefUiState.error,
-                        color = textColor,
-                        modifier = Modifier
-                            .align(Alignment.CenterHorizontally)
-                            .padding(16.dp)
-                            .fillMaxSize()
-                            .verticalScroll(scrollState)
-                    )
-                }
-            }
-
-        }
     }
 }
 
-@Composable
-fun MarkdownViewer(
-    markdownText: String,
-    modifier: Modifier = Modifier,
-    color: Color = MaterialTheme.colorScheme.onSurface
-) {
-    val parsedContent = parseMarkdown(markdownText, color)
+//@Composable
+//fun ChatBubble(
+//    text: String,
+//    timestamp: Long,
+//    isUser: Boolean,
+//    isMarkdown: Boolean,
+//    modifier: Modifier = Modifier,
+//    loading : Boolean = false
+//) {
+//    // colors
+//    val bubbleColor =
+//        if (isUser) Color.DarkGray
+//        else Color.DarkGray
+//
+//    val textColor =
+//        if (isUser) Color.LightGray
+//        else Color.LightGray
+//
+//    // alignment: user on the right, bot on the left
+//    val horizontalAlignment =
+//        if (isUser) Alignment.End else Alignment.Start
+//
+//    Column(
+//        modifier = modifier
+//            .fillMaxWidth(),
+//        horizontalAlignment = horizontalAlignment
+//    ) {
+//        // the bubble itself
+//        Box(
+//            modifier = Modifier
+//                .widthIn(max = 280.dp) // don't let it stretch full width
+//                .background(
+//                    color = bubbleColor,
+//                    shape = RoundedCornerShape(
+//                        topStart = 16.dp,
+//                        topEnd = 16.dp,
+//                        bottomStart = if (isUser) 16.dp else 4.dp,
+//                        bottomEnd = if (isUser) 4.dp else 16.dp
+//                    )
+//                )
+//                .padding(12.dp)
+//        ) {
+//            if (isMarkdown) {
+//                MarkdownViewer(
+//                    markdownText = text,
+//                    timestamp = timestamp, // we'll ignore timestamp inside viewer now
+//                    modifier = Modifier.fillMaxWidth(),
+//                    color = textColor
+//                )
+//            } else {
+//                Text(
+//                    text = text,
+//                    color = textColor,
+//                    style = MaterialTheme.typography.bodyMedium,
+//                    lineHeight = 20.sp,
+//                    modifier = if (loading) modifier.shimmer() else modifier
+//                )
+//            }
+//        }
+//
+//        Row(
+//            modifier = modifier.widthIn(max = 280.dp),
+//            horizontalArrangement = Arrangement.SpaceBetween
+//        ) {
+//            // timestamp under bubble
+////            if (isMarkdown) {
+//                Text(
+//                    text = formatTimestamp(timestamp),
+//                    style = MaterialTheme.typography.labelSmall,
+//                    color = MaterialTheme.colorScheme.outline,
+//                    modifier = Modifier
+//                        .padding(top = 4.dp, start = 4.dp, end = 10.dp)
+//                )
+////            }
+//
+//            IconButton(onClick = {
+//
+//            },
+//                modifier = modifier.size(25.dp).padding(start = 3.dp, end = 7.dp)) {
+//                Icon(Icons.Default.ContentPaste, contentDescription = "Localized description")
+//            }
+//        }
+//    }
+//}
 
-    Column(modifier = modifier) {
-        parsedContent.forEach { component ->
-            component()
-        }
-    }
-}
 
-@Composable
+
 @Preview
-fun prev(){
+@Composable
+fun preview(){
     TheChefBotTheme {
-        RecipeScreen(navHostController = NavHostController(LocalContext.current))
-
+        RecipeScreenTest()
     }
 }
+
+

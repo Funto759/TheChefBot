@@ -7,11 +7,15 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
 import android.widget.Toast
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.sp
+import com.example.thechefbot.screen.formatTimestamp
+import com.google.firebase.Timestamp
 import java.io.InputStream
 
 object CommonUtil {
@@ -40,7 +44,7 @@ object CommonUtil {
         }
     }
 
-    fun parseMarkdown(text: String, color: Color): List<@Composable () -> Unit> {
+    fun parseMarkdown(text: String, color: Color, timestamp: Long): List<@Composable () -> Unit> {
         val parsedComponents = mutableListOf<@Composable () -> Unit>()
 
         val lines = text.split("\n")
@@ -52,6 +56,7 @@ object CommonUtil {
                         Text(
                             text = line.removePrefix("# "),
                             color = color,
+                            lineHeight = 20.sp,
                             fontWeight = FontWeight.Bold,
                             style = androidx.compose.ui.text.TextStyle(
                                 fontSize = 24.sp
@@ -65,6 +70,7 @@ object CommonUtil {
                         val content = line.substringAfter("**").substringBeforeLast("**")
                         Text(
                             text = content,
+                            lineHeight = 20.sp,
                             color = color,
                             fontWeight = FontWeight.Bold
                         )
@@ -76,6 +82,7 @@ object CommonUtil {
                         val content = line.substringAfter("*").substringBeforeLast("*")
                         Text(
                             text = content,
+                            lineHeight = 20.sp,
                             color = color,
                             style = androidx.compose.ui.text.TextStyle(fontStyle = androidx.compose.ui.text.font.FontStyle.Italic)
                         )
@@ -84,11 +91,12 @@ object CommonUtil {
 
                 else -> {
                     parsedComponents.add {
-                        Text(text = line, color = color)
+                        Text(text = line, color = color, lineHeight = 20.sp,)
                     }
                 }
             }
         }
+
 
         return parsedComponents
     }

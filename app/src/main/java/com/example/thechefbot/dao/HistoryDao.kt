@@ -3,20 +3,24 @@ package com.example.thechefbot.dao
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Query
-import com.example.thechefbot.data.History
+import androidx.room.Update
+import com.example.thechefbot.model.data.ChatSession
+
 import kotlinx.coroutines.flow.Flow
 
 @Dao
-interface HistoryDao {
+interface ChatSessionDao {
+
     @Insert
-    fun insertHistory(history: History): Long
+    suspend fun insertSession(session: ChatSession): Long
+    // returns new sessionId as Long
 
-    @Query("SELECT * FROM history_table ORDER BY timestamp DESC")
-    fun getHistories(): Flow<List<History>>
+    @Update
+    suspend fun updateSession(session: ChatSession)
 
-    @Query("DELETE FROM history_table WHERE id = :id")
-    fun deleteHistory(id: Int): Int
+    @Query("SELECT * FROM session_table ORDER BY lastUsedTimeStamp DESC")
+    fun getAllSessions(): Flow<List<ChatSession>>
 
-    @Query("SELECT * FROM history_table WHERE id = :id")
-    fun getHistoryById(id: Int): Flow<History>
+    @Query("SELECT * FROM session_table WHERE sessionId = :id LIMIT 1")
+    suspend fun getSessionById(id: Int): ChatSession?
 }

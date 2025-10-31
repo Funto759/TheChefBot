@@ -1,4 +1,4 @@
-package com.example.thechefbot.state
+package com.example.thechefbot.model.state
 
 import android.net.Uri
 

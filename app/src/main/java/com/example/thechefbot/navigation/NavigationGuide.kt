@@ -16,7 +16,7 @@ fun NavigationGuide(navController: NavHostController) {
         startDestination = NavRoute.RecipeScreen,
         modifier = Modifier
     ) {
-        composable <NavRoute.RecipeScreen>{ RecipeScreen(navController) }
+        composable <NavRoute.RecipeScreen>{ RecipeScreen(navHostController = navController) }
     }
 
 }
