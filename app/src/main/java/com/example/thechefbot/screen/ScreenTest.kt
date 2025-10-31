@@ -35,6 +35,7 @@ import androidx.compose.material.icons.filled.Send
 import androidx.compose.material.icons.filled.SportsBaseball
 import androidx.compose.material.icons.filled.SubdirectoryArrowLeft
 import androidx.compose.material3.BottomAppBar
+import androidx.compose.material3.BottomAppBarDefaults
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.CircularProgressIndicator
@@ -59,11 +60,13 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.ModifierLocalBeyondBoundsLayout
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.platform.SoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -146,7 +149,8 @@ fun RecipeScreen(modifier: Modifier = Modifier, navHostController: NavHostContro
         toggleExpanded = {
             expanded = !expanded
         },
-        expanded = expanded
+        expanded = expanded,
+        keyboardController = keyboardController
     )
 
 }
@@ -162,7 +166,8 @@ fun MainScreen(modifier: Modifier = Modifier,
                launchPhotoPicker: () -> Unit = {},
                launchCamera: () -> Unit = {},
                toggleExpanded: () -> Unit = {},
-               expanded: Boolean) {
+               expanded: Boolean,
+keyboardController: SoftwareKeyboardController?) {
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
 
 
@@ -182,7 +187,8 @@ fun MainScreen(modifier: Modifier = Modifier,
                 toggleExpanded = toggleExpanded,
                 launchCamera = launchCamera,
                 launchPhotoPicker = launchPhotoPicker,
-                viewModel = viewModel
+                viewModel = viewModel,
+                keyboardController = keyboardController
             )
         }
     ) { innerPadding ->
@@ -579,7 +585,7 @@ fun TopChefBar(modifier: Modifier = Modifier, scrollBehavior: TopAppBarScrollBeh
 }
 
 @Composable
-fun SendButton(modifier: Modifier, chefUiState: ChefUiState, context: Context, viewModel: RecipeViewModel) {
+fun SendButton(modifier: Modifier, chefUiState: ChefUiState, context: Context, viewModel: RecipeViewModel,keyboardController: SoftwareKeyboardController?) {
     IconButton(
         modifier = modifier.padding(5.dp),
         onClick = {
@@ -592,9 +598,11 @@ fun SendButton(modifier: Modifier, chefUiState: ChefUiState, context: Context, v
                         imageUri = chefUiState.selectedImages,
                         sessionId = 1
                     ))
+                keyboardController?.hide()
                 }else if (chefUiState.prompt.isNotEmpty()) {
                 println("2")
                     viewModel.handleEvent(ChefScreenEvents.GenerateRecipe(prompt = chefUiState.prompt, sessionId = 1))
+                keyboardController?.hide()
                 }else{
                     Toast.makeText(context, "Please enter a prompt", Toast.LENGTH_SHORT).show()
             }
@@ -613,9 +621,11 @@ fun ChefBottomBar(
     toggleExpanded: () -> Unit,
     launchCamera: () -> Unit,
     launchPhotoPicker: () -> Unit,
-    viewModel: RecipeViewModel
+    viewModel: RecipeViewModel,
+    keyboardController: SoftwareKeyboardController?
 ) {
     BottomAppBar(
+
         actions = {
 //            IconButton(onClick = { copyToClipboard(context, chefUiState.result) }) {
 //                Icon(Icons.Filled.ContentPaste, contentDescription = "Localized description")
@@ -675,14 +685,21 @@ fun ChefBottomBar(
                 onValueChange = {
                     viewModel.handleEvent(ChefScreenEvents.UpdatePrompt(it))
                 },
-                label = { Text("Ask me anything...") },
+                label = { Text(
+                    "Ask me anything...",
+                    modifier = modifier.clip(RoundedCornerShape(25.dp))
+                ) },
                 modifier = modifier,
                 shape = RoundedCornerShape(25.dp),
                 colors = OutlinedTextFieldDefaults.colors(
+                    focusedTextColor = Color.Black,
                     focusedBorderColor = Color.Transparent,
                     unfocusedBorderColor = Color.Transparent,
                     focusedContainerColor = Color.LightGray,
                     unfocusedContainerColor = Color.LightGray,
+                    focusedLabelColor = Color.Gray,
+                    unfocusedLabelColor = Color.Gray,
+                    disabledLabelColor = Color.Gray,
                     cursorColor = Color.Black
                 ),
 
@@ -690,7 +707,7 @@ fun ChefBottomBar(
 
         },
         floatingActionButton = {
-            SendButton(modifier = modifier, chefUiState = chefUiState, context = context, viewModel = viewModel)
+            SendButton(modifier = modifier, chefUiState = chefUiState, context = context, viewModel = viewModel,keyboardController = keyboardController)
         },
     )
 }
