@@ -1,6 +1,7 @@
 package com.example.thechefbot.dao
 
 import androidx.room.Dao
+import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Update
@@ -23,4 +24,13 @@ interface ChatSessionDao {
 
     @Query("SELECT * FROM session_table WHERE sessionId = :id LIMIT 1")
     suspend fun getSessionById(id: Int): ChatSession?
+
+    @Query("DELETE FROM session_table")
+    suspend fun deleteAllSessions()
+
+    @Delete
+    suspend fun deleteSession(session: ChatSession)
+
+    @Query("DELETE FROM session_table WHERE sessionId = :sessionId")
+    suspend fun deleteSessionById(sessionId: Int)
 }

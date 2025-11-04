@@ -9,6 +9,7 @@ import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -24,33 +25,48 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
+import androidx.compose.material.icons.automirrored.outlined.Help
 import androidx.compose.material.icons.filled.ContentPaste
+import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.MenuOpen
+import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DrawerState
+import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalDrawerSheet
+import androidx.compose.material3.ModalNavigationDrawer
+import androidx.compose.material3.NavigationDrawerItem
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -60,28 +76,165 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
+import com.example.thechefbot.R
 
 import com.example.thechefbot.ui.theme.TheChefBotTheme
 import com.example.thechefbot.util.CommonUtil.copyToClipboard
 import com.example.thechefbot.util.CommonUtil.parseMarkdown
 import com.example.thechefbot.util.shimmer
 import com.google.firebase.platforminfo.DefaultUserAgentPublisher.component
+import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 import java.io.File
 import java.util.UUID
 import kotlin.text.insert
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun RecipeScreenTest(){
-ChatMessageRow()
+fun RecipeScreenTest() {
+    val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
+    val scope = rememberCoroutineScope()
+
+
+
+    ModalNavigationDrawer(
+        drawerContent = {
+            ModalDrawerSheet {
+                Column(
+                    modifier = Modifier.padding(horizontal = 16.dp)
+                        .verticalScroll(rememberScrollState())
+                ) {
+                    Spacer(Modifier.height(12.dp))
+
+                    IconButton(onClick = {
+                        scope.launch {
+                            if (drawerState.isClosed) {
+                                drawerState.open()
+                            } else {
+                                drawerState.close()
+                            }
+                        }
+                    }) {
+                        Icon(Icons.Default.MenuOpen, contentDescription = "Menu")
+                    }
+
+                    Image(
+                        painter = painterResource(R.drawable.ic_sun),
+                        contentDescription = "user attachment",
+                        contentScale = ContentScale.FillWidth,
+                        modifier = Modifier.clip(CircleShape).align(Alignment.CenterHorizontally)
+                    )
+                    Text(
+                        "Funmito",
+                        modifier = Modifier.padding(16.dp)
+                            .align(Alignment.CenterHorizontally),
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                    HorizontalDivider()
+
+                    NavigationDrawerItem(
+                        modifier = Modifier.padding(16.dp)
+                            .align(Alignment.CenterHorizontally),
+                        shape = RoundedCornerShape(16.dp),
+                        label = { Text("New Chat") },
+                        selected = false,
+                        icon = {
+                            Icon(
+                                painterResource(R.drawable.ic_chat_save),
+                                contentDescription = null
+                            )
+                        },
+                        onClick = { /* Handle click */ }
+                    )
+                    NavigationDrawerItem(
+                        modifier = Modifier.padding(16.dp)
+                            .align(Alignment.CenterHorizontally),
+                        shape = RoundedCornerShape(16.dp),
+                        label = { Text("Delete Chat") },
+                        selected = false,
+                        icon = {
+                            Icon(
+                                painterResource(R.drawable.ic_chat_del),
+                                contentDescription = null
+                            )
+                        },
+                        onClick = { /* Handle click */ }
+                    )
+
+                    HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+
+                    Text(
+                        "Chat History",
+                        modifier = Modifier.padding(16.dp)
+                            .align(Alignment.CenterHorizontally),
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                    NavigationDrawerItem(
+                        modifier = Modifier.padding(16.dp)
+                            .align(Alignment.CenterHorizontally),
+                        shape = RoundedCornerShape(16.dp),
+                        label = { Text("Settings") },
+                        selected = false,
+                        icon = { Icon(painterResource(R.drawable.ic_chat_options), contentDescription = null) },
+                        onClick = { /* Handle click */ }
+                    )
+                    NavigationDrawerItem(
+                        modifier = Modifier.padding(16.dp)
+                            .align(Alignment.CenterHorizontally),
+                        shape = RoundedCornerShape(16.dp),
+                        label = { Text("Help and feedback") },
+                        selected = false,
+                        icon = {
+                            Icon(
+                                painterResource(R.drawable.ic_chat_options),
+                                contentDescription = null
+                            )
+                        },
+                        onClick = { /* Handle click */ },
+                    )
+                    Spacer(Modifier.height(12.dp))
+                }
+            }
+        },
+        drawerState = drawerState
+    ) {
+        Scaffold(
+            topBar = {
+                TopAppBar(
+                    title = { Text("Navigation Drawer Example") },
+                    navigationIcon = {
+                        IconButton(onClick = {
+                            scope.launch {
+                                if (drawerState.isClosed) {
+                                    drawerState.open()
+                                } else {
+                                    drawerState.close()
+                                }
+                            }
+                        }) {
+                            Icon(Icons.Default.Menu, contentDescription = "Menu")
+                        }
+                    }
+                )
+            }
+        ) { paddingValues ->
+            ChatMessageRow(paddingValues = paddingValues)
+        }
+
+    }
 }
 
 @Composable
-fun ChatMessageRow(modifier: Modifier = Modifier) {
+fun ModalDrawerViewMain(modifier: Modifier = Modifier, composable : @Composable (() -> Unit), drawerState: DrawerState) {
+
+}
+
+@Composable
+fun ChatMessageRow(modifier: Modifier = Modifier, paddingValues: PaddingValues) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(vertical = 12.dp)
+            .padding(vertical = 12.dp).padding(paddingValues = paddingValues)
     ) {
 
         ChatBubble(

@@ -15,4 +15,10 @@ interface ChatDao {
     // Get the full transcript of a session, newest last
     @Query("SELECT * FROM message_table WHERE sessionOwnerId = :sessionId ORDER BY timestamp ASC")
     fun getMessagesForSession(sessionId: Int): Flow<List<ChatMessage>>
+
+    @Query("DELETE FROM message_table WHERE sessionOwnerId = :sessionId")
+    suspend fun deleteMessagesForSession(sessionId: Int)
+
+    @Query("DELETE FROM message_table")
+    suspend fun deleteAllMessages()
 }

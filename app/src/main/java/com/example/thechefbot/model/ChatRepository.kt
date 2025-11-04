@@ -74,9 +74,41 @@ class ChatRepository(
         }
     }
 
+    // NEW: Create a new empty session
+    suspend fun createNewSession(title: String = "New Chat"): Int {
+        val now = System.currentTimeMillis()
+        val newSession = ChatSession(
+            title = title,
+            lastUsedTimeStamp = now
+        )
+        val newId = sessionDao.insertSession(newSession)
+        return newId.toInt()
+    }
+
+    // NEW: Delete a session and all its messages
+    suspend fun deleteSession(sessionId: Int) {
+        // First delete all messages in this session
+        messageDao.deleteMessagesForSession(sessionId)
+        // Then delete the session itself
+        sessionDao.deleteSessionById(sessionId)
+    }
+
+
+    // NEW: Delete all sessions and messages
+    suspend fun deleteAllSessions() {
+        messageDao.deleteAllMessages()
+        sessionDao.deleteAllSessions()
+    }
+
+    // NEW: Rename a session
+    suspend fun renameSession(sessionId: Int, newTitle: String) {
+        val session = sessionDao.getSessionById(sessionId)
+        if (session != null) {
+            sessionDao.updateSession(session.copy(title = newTitle))
+        }
+    }
+
     private fun generateTitleFromPrompt(prompt: String): String {
-        // You can be smarter here. For now:
-        // Take the first ~40 chars of the user's first question.
         return if (prompt.length <= 40) prompt
         else prompt.take(37) + "..."
     }

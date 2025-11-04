@@ -37,7 +37,10 @@ class RecipeViewModel(
 
 
     init {
-        openSession(1)
+        viewModelScope.launch {
+            val newSessionId = chatRepository.createNewSession("New Chat")
+            openSession(newSessionId)
+        }
     }
 
     // expose messages for the currently active session
@@ -69,6 +72,52 @@ class RecipeViewModel(
     // call this when you open the chat screen
     fun openSession(sessionId: Int?) {
         _activeSessionId.value = sessionId
+    }
+
+    // NEW: Create a new chat session
+    fun createNewSession() {
+        viewModelScope.launch {
+            val newSessionId = chatRepository.createNewSession("New Chat")
+            openSession(newSessionId)
+
+            // Clear UI state for fresh start
+            _chefUiState.update {
+                it.copy(
+                    prompt = "",
+                    selectedImages = null,
+                    result = "",
+                    errorState = false,
+                    error = ""
+                )
+            }
+        }
+    }
+
+    // NEW: Delete a session
+    fun deleteSession(sessionId: Int) {
+        viewModelScope.launch {
+            chatRepository.deleteSession(sessionId)
+
+            // If we deleted the active session, create a new one
+            if (_activeSessionId.value == sessionId) {
+                createNewSession()
+            }
+        }
+    }
+
+    // NEW: Delete all sessions
+    fun deleteAllSessions() {
+        viewModelScope.launch {
+            chatRepository.deleteAllSessions()
+            createNewSession() // Create a fresh session
+        }
+    }
+
+    // NEW: Rename a session
+    fun renameSession(sessionId: Int, newTitle: String) {
+        viewModelScope.launch {
+            chatRepository.renameSession(sessionId, newTitle)
+        }
     }
 
 
