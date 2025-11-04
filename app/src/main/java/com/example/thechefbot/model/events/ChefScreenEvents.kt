@@ -15,6 +15,26 @@ sealed interface ChefScreenEvents {
 
     data class ResetState(val state: Boolean) : ChefScreenEvents
 
+    data class DeleteSession(val sessionId : Int?) : ChefScreenEvents
+
+//    data object RenameSession : ChefScreenEvents
+
+
+    data class UpdateShowDialogStatus(val status : Boolean) : ChefScreenEvents
+
+
+    data class OpenSession(val sessionId : Int) : ChefScreenEvents
+
+    data object CreateNewSession : ChefScreenEvents
+
+    data object DeleteAllSessions : ChefScreenEvents
+
+    data class UpdateSessionToDelete(val sessionId : Int?) : ChefScreenEvents
+
+    data object ResetSessionToDelete : ChefScreenEvents
+
+
+
 }
 
 

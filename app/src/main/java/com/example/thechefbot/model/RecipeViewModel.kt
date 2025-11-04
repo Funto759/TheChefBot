@@ -48,7 +48,7 @@ class RecipeViewModel(
     val messagesForActiveSession: StateFlow<List<ChatMessage>> =
         activeSessionId
             .flatMapLatest { sessionId ->
-                if (sessionId == null) {
+                if ( sessionId == null) {
                     flowOf(emptyList())
                 } else {
                     chatRepository.getMessagesForSession(sessionId)
@@ -72,6 +72,9 @@ class RecipeViewModel(
     // call this when you open the chat screen
     fun openSession(sessionId: Int?) {
         _activeSessionId.value = sessionId
+        _chefUiState.update {
+            it.copy(activeSessionId = sessionId)
+        }
     }
 
     // NEW: Create a new chat session
@@ -99,7 +102,7 @@ class RecipeViewModel(
             chatRepository.deleteSession(sessionId)
 
             // If we deleted the active session, create a new one
-            if (_activeSessionId.value == sessionId) {
+            if (_chefUiState.value.activeSessionId == sessionId) {
                 createNewSession()
             }
         }
@@ -121,38 +124,7 @@ class RecipeViewModel(
     }
 
 
-    fun handleEvent(event: ChefScreenEvents) {
-        when (event) {
-            is ChefScreenEvents.GenerateRecipe -> {
-                sendPrompt(event.sessionId, event.prompt)
-            }
 
-            is ChefScreenEvents.GenerateRecipeWithImage -> {
-                sendPromptedImage(event.context, event.imageUri, event.prompt, event.sessionId)
-            }
-
-            is ChefScreenEvents.UpdatePrompt -> {
-                updatePrompt(event.prompt)
-            }
-
-            is ChefScreenEvents.ClearPrompt -> {
-                clearPrompt()
-            }
-
-            is ChefScreenEvents.UpdateSelectedImage -> {
-                updateSelectedImage(event.imageUri)
-            }
-
-            is ChefScreenEvents.ResetState -> {
-                resetState(event.state)
-            }
-
-            is ChefScreenEvents.ClearImage -> {
-                clearImage()
-            }
-
-        }
-    }
 
 
     fun resetState(state: Boolean) {
@@ -206,10 +178,14 @@ class RecipeViewModel(
             try {
                 // 1. Make sure we have / create a session for this conversation
                 val ensuredSessionId = chatRepository.ensureSession(
-                    existingSessionId = _activeSessionId.value,
+                    existingSessionId = _chefUiState.value.activeSessionId,
                     firstPromptForTitle = prompt
                 )
+
                 _activeSessionId.value = ensuredSessionId
+                _chefUiState.update {
+                    it.copy(activeSessionId = ensuredSessionId)
+                }
                 val recipe = generativeModel.generateContent(
                     content {
                         text("$prompt")
@@ -305,10 +281,13 @@ class RecipeViewModel(
 
                 // 1. Make / ensure session
                 val ensuredSessionId = chatRepository.ensureSession(
-                    existingSessionId = _activeSessionId.value,
+                    existingSessionId = _chefUiState.value.activeSessionId,
                     firstPromptForTitle = prompt
                 )
                 _activeSessionId.value = ensuredSessionId
+                _chefUiState.update {
+                    it.copy(activeSessionId = ensuredSessionId)
+                }
 
                 val recipe = generativeModel.generateContent(
                     content {
@@ -389,4 +368,86 @@ class RecipeViewModel(
             }
         }
     }
+
+    fun updateSessionToDelete(sessionId: Int){
+        _chefUiState.update {
+            it.copy(sessionToDelete = sessionId)
+        }
+    }
+
+    fun resetSessionToDelete(){
+        _chefUiState.update {
+            it.copy(sessionToDelete = null,
+                showDeleteDialog = false
+            )
+        }
+    }
+
+    fun updateShowDeleteDialog(status : Boolean){
+        _chefUiState.update {
+            it.copy(showDeleteDialog = status)
+        }
+    }
+
+
+    fun handleEvent(event: ChefScreenEvents) {
+        when (event) {
+            is ChefScreenEvents.UpdateShowDialogStatus -> {
+                updateShowDeleteDialog(event.status)
+            }
+            is ChefScreenEvents.UpdateSessionToDelete -> {
+                updateSessionToDelete(event.sessionId!!)
+            }
+            is ChefScreenEvents.ResetSessionToDelete -> {
+                resetSessionToDelete()
+            }
+            is ChefScreenEvents.GenerateRecipe -> {
+                sendPrompt(event.sessionId, event.prompt)
+            }
+
+            is ChefScreenEvents.GenerateRecipeWithImage -> {
+                sendPromptedImage(event.context, event.imageUri, event.prompt, event.sessionId)
+            }
+
+            is ChefScreenEvents.UpdatePrompt -> {
+                updatePrompt(event.prompt)
+            }
+
+            is ChefScreenEvents.ClearPrompt -> {
+                clearPrompt()
+            }
+
+            is ChefScreenEvents.UpdateSelectedImage -> {
+                updateSelectedImage(event.imageUri)
+            }
+
+            is ChefScreenEvents.ResetState -> {
+                resetState(event.state)
+            }
+
+            is ChefScreenEvents.ClearImage -> {
+                clearImage()
+            }
+
+            is ChefScreenEvents.DeleteAllSessions -> {
+               deleteAllSessions()
+                handleEvent(ChefScreenEvents.ResetSessionToDelete)
+            }
+
+            is ChefScreenEvents.DeleteSession -> {
+                deleteSession(event.sessionId!!)
+                handleEvent(ChefScreenEvents.ResetSessionToDelete)
+            }
+
+            is ChefScreenEvents.CreateNewSession -> {
+                createNewSession()
+            }
+
+            is ChefScreenEvents.OpenSession -> {
+                openSession(event.sessionId)
+            }
+
+        }
+    }
+
 }

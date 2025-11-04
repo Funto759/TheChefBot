@@ -1,6 +1,7 @@
 package com.example.thechefbot.model.state
 
 import android.net.Uri
+import com.example.thechefbot.model.data.ChatSession
 
 data class ChefUiState(
     val loading : Boolean = false,
@@ -11,5 +12,9 @@ data class ChefUiState(
     val result : String = "",
     val imageMode : Boolean = false,
     val selectedImages : Uri? = null,
-    val imageUri : Uri? = null
+    val imageUri : Uri? = null,
+    val showDeleteDialog : Boolean = false,
+    val sessionToDelete : Int? = null,
+    val allSessions : List<ChatSession> = emptyList(),
+    val activeSessionId : Int? = null
 )

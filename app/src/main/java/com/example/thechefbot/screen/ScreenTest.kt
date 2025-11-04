@@ -121,9 +121,6 @@ fun RecipeScreen(modifier: Modifier = Modifier, navHostController: NavHostContro
     val chefUiState by viewModel.chefUiState.collectAsStateWithLifecycle()
     val messages by viewModel.messagesForActiveSession.collectAsStateWithLifecycle()
     val allSessions by viewModel.allSessions.collectAsStateWithLifecycle()
-    val activeSessionId by viewModel.activeSessionId.collectAsStateWithLifecycle()
-    var showDeleteDialog by remember { mutableStateOf(false) }
-    var sessionToDelete by remember { mutableStateOf<Int?>(null) }
     val context = LocalContext.current
     var cameraUri by rememberSaveable { mutableStateOf<Uri?>(Uri.EMPTY) }
     val keyboardController = LocalSoftwareKeyboardController.current
@@ -167,27 +164,12 @@ fun RecipeScreen(modifier: Modifier = Modifier, navHostController: NavHostContro
             chefUiState = chefUiState,
             allSessions = allSessions,
             showDeleteDialog = {
-                showDeleteDialog = true
-                if (sessionToDelete != null) {
-                    viewModel.deleteSession(sessionToDelete!!)
-                } else {
-                    viewModel.deleteAllSessions()
-                }
-                showDeleteDialog = false
-                sessionToDelete = null
+                    viewModel.handleEvent(ChefScreenEvents.DeleteAllSessions)
             },
             sessionToDelete = {
-                sessionToDelete = it
-                showDeleteDialog = true
-                if (sessionToDelete != null) {
-                    viewModel.deleteSession(sessionToDelete!!)
-                } else {
-                    viewModel.deleteAllSessions()
-                }
-                showDeleteDialog = false
-                sessionToDelete = null
+                    viewModel.handleEvent(ChefScreenEvents.DeleteSession(it))
             },
-            activeSessionId = activeSessionId,
+            activeSessionId = chefUiState.activeSessionId,
             messages = messages,
             context = context,
             onClick = {
@@ -228,7 +210,7 @@ fun RecipeScreen(modifier: Modifier = Modifier, navHostController: NavHostContro
 fun ModalDrawerView(modifier: Modifier = Modifier,
                     allSessions: List<ChatSession>,
                     activeSessionId: Int?,
-                    showDeleteDialog: (Boolean) -> Unit,
+                    showDeleteDialog: () -> Unit,
                     sessionToDelete: (Int?) -> Unit,
                     scope: CoroutineScope,
                     drawerState: DrawerState,
@@ -312,7 +294,8 @@ fun ModalDrawerView(modifier: Modifier = Modifier,
                             )
                         },
                         onClick = {
-                            showDeleteDialog(true)
+                            viewModel.handleEvent(ChefScreenEvents.UpdateShowDialogStatus(true))
+                            showDeleteDialog()
                         }
                     )
 
@@ -853,12 +836,12 @@ fun SendButton(modifier: Modifier, chefUiState: ChefUiState, context: Context, v
                         context = context,
                         prompt = chefUiState.prompt,
                         imageUri = chefUiState.selectedImages,
-                        sessionId = 1
+                        sessionId = chefUiState.activeSessionId!!
                     ))
                 keyboardController?.hide()
                 }else if (chefUiState.prompt.isNotEmpty()) {
                 println("2")
-                    viewModel.handleEvent(ChefScreenEvents.GenerateRecipe(prompt = chefUiState.prompt, sessionId = 1))
+                    viewModel.handleEvent(ChefScreenEvents.GenerateRecipe(prompt = chefUiState.prompt, sessionId = chefUiState.activeSessionId!!))
                 keyboardController?.hide()
                 }else{
                     Toast.makeText(context, "Please enter a prompt", Toast.LENGTH_SHORT).show()
