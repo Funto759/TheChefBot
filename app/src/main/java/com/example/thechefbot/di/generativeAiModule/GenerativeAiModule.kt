@@ -1,16 +1,14 @@
 package com.example.thechefbot.di.generativeAiModule
 
-import androidx.compose.ui.unit.IntRect
 import androidx.room.Room
 import com.example.thechefbot.dao.MIGRATION_1_2
 import com.example.thechefbot.dao.RecipeDatabase
+
 import com.example.thechefbot.model.ChatRepository
 import com.example.thechefbot.model.RecipeViewModel
+import com.example.thechefbot.model.SessionPrefs
 import com.google.ai.client.generativeai.GenerativeModel
-import com.google.ai.client.generativeai.type.BlockThreshold
-import com.google.ai.client.generativeai.type.HarmCategory
 import com.google.ai.client.generativeai.type.RequestOptions
-import com.google.ai.client.generativeai.type.SafetySetting
 import com.google.ai.client.generativeai.type.generationConfig
 import org.koin.core.module.dsl.singleOf
 import org.koin.core.module.dsl.viewModelOf
@@ -56,6 +54,10 @@ val provideDatabaseModule = module {
 
 val provideRepositoryModule = module {
     singleOf(::ChatRepository)
+}
+
+val provideSessionPrefsModule = module {
+    single { SessionPrefs(get()) }
 }
 
 val provideViewModelModule = module {

@@ -7,7 +7,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 import com.example.thechefbot.model.data.ChatMessage
 import com.example.thechefbot.model.data.ChatSession
 
-@Database(entities = [ChatSession::class, ChatMessage::class], version = 2, exportSchema = true)
+@Database(entities = [ChatSession::class, ChatMessage::class], version = 3, exportSchema = true)
 abstract class RecipeDatabase : RoomDatabase() {
     abstract fun chatDao(): ChatDao
     abstract fun chatSessionDao(): ChatSessionDao

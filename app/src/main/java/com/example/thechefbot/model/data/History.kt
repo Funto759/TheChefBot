@@ -10,7 +10,7 @@ data class ChatSession(
 
     // Human-friendly label for the conversation. You can generate this
     // from the first user prompt ("What can I cook with tuna?").
-    val title: String,
+    val title: String?,
 
     // When this session was last active (epoch millis).
     // Useful for sorting sessions by "most recent".

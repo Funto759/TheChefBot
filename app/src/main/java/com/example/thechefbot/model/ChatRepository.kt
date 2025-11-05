@@ -14,6 +14,8 @@ class ChatRepository(
     fun getAllSessions(): Flow<List<ChatSession>> =
         sessionDao.getAllSessions()
 
+    fun getSession(id : Int) : Flow<ChatSession?> = sessionDao.getSessionByIdFlow(id = id)
+
     fun getMessagesForSession(sessionId: Int): Flow<List<ChatMessage>> =
         messageDao.getMessagesForSession(sessionId)
 
@@ -75,7 +77,7 @@ class ChatRepository(
     }
 
     // NEW: Create a new empty session
-    suspend fun createNewSession(title: String = "New Chat"): Int {
+    suspend fun createNewSession(title: String? = null): Int {
         val now = System.currentTimeMillis()
         val newSession = ChatSession(
             title = title,

@@ -39,6 +39,7 @@ import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.MenuOpen
 import androidx.compose.material.icons.filled.Send
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.SportsBaseball
 import androidx.compose.material.icons.filled.SubdirectoryArrowLeft
 import androidx.compose.material.icons.outlined.Settings
@@ -59,6 +60,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.ModalNavigationDrawer
@@ -83,11 +85,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.ModifierLocalBeyondBoundsLayout
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.SoftwareKeyboardController
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -105,6 +109,9 @@ import com.example.thechefbot.model.data.ChatSession
 import com.example.thechefbot.model.state.ChefUiState
 import com.example.thechefbot.util.CommonUtil.copyToClipboard
 import com.example.thechefbot.util.CommonUtil.parseMarkdown
+import com.example.thechefbot.util.launchCamera
+import com.example.thechefbot.util.launchPhotoPicker
+import com.example.thechefbot.util.saveImageToInternalStorage
 import com.example.thechefbot.util.shimmer
 import com.example.thechefbot.util.shimmerLoading
 import com.google.firebase.Timestamp
@@ -121,6 +128,7 @@ fun RecipeScreen(modifier: Modifier = Modifier, navHostController: NavHostContro
     val chefUiState by viewModel.chefUiState.collectAsStateWithLifecycle()
     val messages by viewModel.messagesForActiveSession.collectAsStateWithLifecycle()
     val allSessions by viewModel.allSessions.collectAsStateWithLifecycle()
+    val session by viewModel.selectedSession.collectAsStateWithLifecycle()
     val context = LocalContext.current
     var cameraUri by rememberSaveable { mutableStateOf<Uri?>(Uri.EMPTY) }
     val keyboardController = LocalSoftwareKeyboardController.current
@@ -131,7 +139,9 @@ fun RecipeScreen(modifier: Modifier = Modifier, navHostController: NavHostContro
     val photoPicker = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickVisualMedia(),
         onResult = { uri ->
-            uri?.let { saveImageToInternalStorage(context, it, viewModel = viewModel) }
+            uri?.let { saveImageToInternalStorage(context, it, onSelected = { uri ->
+                viewModel.handleEvent(ChefScreenEvents.UpdateSelectedImage(uri))
+            }) }
         }
     )
 
@@ -163,6 +173,7 @@ fun RecipeScreen(modifier: Modifier = Modifier, navHostController: NavHostContro
             viewModel = viewModel,
             chefUiState = chefUiState,
             allSessions = allSessions,
+            session = session,
             showDeleteDialog = {
                     viewModel.handleEvent(ChefScreenEvents.DeleteAllSessions)
             },
@@ -210,6 +221,7 @@ fun RecipeScreen(modifier: Modifier = Modifier, navHostController: NavHostContro
 fun ModalDrawerView(modifier: Modifier = Modifier,
                     allSessions: List<ChatSession>,
                     activeSessionId: Int?,
+                    session: ChatSession? = null,
                     showDeleteDialog: () -> Unit,
                     sessionToDelete: (Int?) -> Unit,
                     scope: CoroutineScope,
@@ -243,11 +255,12 @@ fun ModalDrawerView(modifier: Modifier = Modifier,
                             }
                         }
                     }) {
-                        Icon(Icons.Default.MenuOpen, contentDescription = "Menu")
+                        Icon(Icons.Default.MenuOpen, contentDescription = "Menu",
+                            tint = colorResource(R.color.orange))
                     }
 
                     Image(
-                        painter = painterResource(R.drawable.ic_sun),
+                        painter = painterResource(R.drawable.ic_launcher_foreground),
                         contentDescription = "user attachment",
                         contentScale = ContentScale.FillWidth,
                         modifier = Modifier
@@ -257,7 +270,7 @@ fun ModalDrawerView(modifier: Modifier = Modifier,
                     Text(
                         "Funmito",
                         modifier = Modifier
-                            .padding(10.dp)
+                            .padding(5.dp)
                             .align(Alignment.CenterHorizontally),
                         style = MaterialTheme.typography.titleMedium
                     )
@@ -317,7 +330,7 @@ fun ModalDrawerView(modifier: Modifier = Modifier,
                             shape = RoundedCornerShape(12.dp),
                             icon = {
                                 Icon(
-                                    painter = painterResource(R.drawable.ic_chat_save),
+                                    painter = painterResource(R.drawable.ic_chat_options),
                                     contentDescription = null
                                 )
                             },
@@ -328,7 +341,7 @@ fun ModalDrawerView(modifier: Modifier = Modifier,
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
                                     Text(
-                                        text = session.title,
+                                        text = if (session.title.isNullOrEmpty()) "New Chat" else session.title,
                                         modifier = Modifier.weight(1f),
                                         maxLines = 1,
                                         overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
@@ -343,7 +356,7 @@ fun ModalDrawerView(modifier: Modifier = Modifier,
                                             Icon(
                                                 Icons.Default.Cancel,
                                                 contentDescription = "Delete session",
-                                                tint = MaterialTheme.colorScheme.error
+                                                tint = colorResource(R.color.orange)
                                             )
                                         }
                                     }
@@ -351,7 +364,7 @@ fun ModalDrawerView(modifier: Modifier = Modifier,
                             },
                             selected = activeSessionId == session.sessionId,
                             onClick = {
-                                viewModel.openSession(session.sessionId)
+                                viewModel.handleEvent(ChefScreenEvents.OpenSession(session.sessionId))
                                 scope.launch { drawerState.close() }
                             }
                         )
@@ -367,6 +380,7 @@ fun ModalDrawerView(modifier: Modifier = Modifier,
             viewModel = viewModel,
             chefUiState = chefUiState,
             messages = messages,
+            session = session,
             context = context,
             launchPhotoPicker = {
                 launchPhotoPicker()
@@ -390,6 +404,7 @@ fun ModalDrawerView(modifier: Modifier = Modifier,
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainScreen(modifier: Modifier = Modifier,
+               session: ChatSession? = null,
                viewModel: RecipeViewModel,
                chefUiState: ChefUiState,
                messages: List<ChatMessage>,
@@ -399,13 +414,15 @@ fun MainScreen(modifier: Modifier = Modifier,
                toggleExpanded: () -> Unit = {},
                onClick: () -> Unit,
                expanded: Boolean,
-keyboardController: SoftwareKeyboardController?) {
+keyboardController: SoftwareKeyboardController?,
+               content: @Composable ((PaddingValues) -> Unit)) {
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
 
 
     Scaffold(
         topBar = {
          TopChefBar(
+             text = session?.title ?: null ,
              scrollBehavior = scrollBehavior,
              modifier = modifier,
              onClick = {
@@ -427,12 +444,14 @@ keyboardController: SoftwareKeyboardController?) {
             )
         }
     ) { innerPadding ->
+        content(innerPadding)
         ConversationArea(
             modifier = modifier,
             paddingValues = innerPadding,
             messages = messages,
             chefUiState = chefUiState,
-            context = context
+            context = context,
+            session = session
         )
     }
 }
@@ -447,409 +466,23 @@ fun ConversationArea(
     paddingValues: PaddingValues,
     messages: List<ChatMessage>,
     chefUiState: ChefUiState,
-    context: Context
+    context: Context,
+    session: ChatSession? = null
 ) {
     if (messages.isEmpty() && !chefUiState.loading) {
-        // initial landing state
-        LazyColumn(
-            modifier = modifier
-                .fillMaxSize()
-                .padding(paddingValues = paddingValues),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-        ) {
-            item {
-                Text(
-                    text = "Hello, Ask me Anything....",
-                    fontSize = 24.sp
-                )
-            }
-            item {
-                Text(
-                    text = "Last Update:"
-                )
-            }
-            item {
-                ContentBody(modifier = Modifier)
-            }
-        }
+        InitialConversationScreen(modifier = modifier, paddingValues = paddingValues, session = session, messages = messages)
     } else {
-        // We have chat history OR we are loading
-        LazyColumn(
-            modifier = modifier
-                .fillMaxSize()
-                .padding(horizontal = 16.dp)
-                .padding(paddingValues = paddingValues),
-            verticalArrangement = Arrangement.Top,
-            horizontalAlignment = Alignment.Start
-        ) {
-            items(messages.size) { index ->
-                val msg = messages[index]
-                ChatMessageRow(msg = msg, context = context)
-            }
-
-            if (chefUiState.loading) {
-                item {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp),
-                        horizontalArrangement = Arrangement.End
-                    ) {
-//                        CircularProgressIndicator()
-//                        Text(text = "Loading")
-                        ChatBubble(
-                            text = chefUiState.prompt,
-                            timestamp = 11,
-                            isUser = true,
-                            isMarkdown = false,
-                            loading = true
-                        )
-                    }
-                }
-            }
-
-            if (chefUiState.errorState) {
-                item {
-                    Text(
-                        text = chefUiState.error,
-                        color = MaterialTheme.colorScheme.error,
-                        style = MaterialTheme.typography.bodyMedium,
-                        modifier = Modifier.padding(16.dp)
-                    )
-                }
-            }
-        }
-    }
-}
-
-
-
-    @Composable
-    fun ContentBody(modifier: Modifier = Modifier) {
-        Spacer(modifier = modifier.height(24.dp))
-
-        Icon(
-            painter = painterResource(R.drawable.ic_sun),
-            contentDescription = "",
-            tint = Color.Unspecified,
+        MessagesList(
+            modifier = modifier,
+            paddingValues = paddingValues,
+            messages = messages,
+            context = context,
+            chefUiState = chefUiState
         )
-        Spacer(modifier = modifier.height(14.dp))
-        ElevatedCardExample()
-        Spacer(modifier = modifier.height(14.dp))
-        ElevatedCardExample()
-        Spacer(modifier = modifier.height(24.dp))
-
-
-
-        Icon(
-            painter = painterResource(R.drawable.ic_cloud),
-            contentDescription = "",
-            tint = Color.Unspecified
-        )
-        Spacer(modifier = modifier.height(14.dp))
-        ElevatedCardExample()
-        Spacer(modifier = modifier.height(14.dp))
-        ElevatedCardExample()
-        Spacer(modifier = modifier.height(24.dp))
-        Icon(
-            painter = painterResource(R.drawable.ic_lightning),
-            contentDescription = "",
-            tint = Color.Unspecified
-        )
-        Spacer(modifier = modifier.height(14.dp))
-        ElevatedCardExample()
-        Spacer(modifier = modifier.height(14.dp))
-        ElevatedCardExample()
-        Spacer(modifier = modifier.height(24.dp))
-
-    }
-
-@Composable
-fun ElevatedCardExample(modifier: Modifier = Modifier) {
-    ElevatedCard(
-        elevation = CardDefaults.cardElevation(
-            defaultElevation = 6.dp
-        ),
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(end = 15.dp, start = 15.dp)
-    ) {
-        Row(modifier = modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceAround){
-            Icon(
-                Icons.Default.SportsBaseball,
-                contentDescription = "",
-                modifier = modifier
-                    .padding(10.dp))
-            Text(
-                text = "Remember what the user entered in former enquiries",
-                modifier = modifier
-                    .padding(10.dp),
-                textAlign = TextAlign.Start,
-                fontSize = 12.sp
-            )
-        }
-    }
-}
-
-@Composable
-fun ChatBubble(
-    text: String,
-    timestamp: Long,
-    isUser: Boolean,
-    isMarkdown: Boolean,
-    modifier: Modifier = Modifier,
-    loading : Boolean = false, 
-    onClick : () -> Unit = {}
-) {
-    // colors
-    val bubbleColor =
-        if (isUser) Color.DarkGray
-        else Color.DarkGray
-
-    val textColor =
-        if (isUser) Color.LightGray
-        else Color.LightGray
-
-    // alignment: user on the right, bot on the left
-    val horizontalAlignment =
-        if (isUser) Alignment.End else Alignment.Start
-
-    Column(
-        modifier = modifier
-            .fillMaxWidth(),
-        horizontalAlignment = horizontalAlignment
-    ) {
-        // the bubble itself
-        Box(
-            modifier = Modifier
-                .widthIn(max = 280.dp) // don't let it stretch full width
-                .background(
-                    color = bubbleColor,
-                    shape = RoundedCornerShape(
-                        topStart = 16.dp,
-                        topEnd = 16.dp,
-                        bottomStart = if (isUser) 16.dp else 4.dp,
-                        bottomEnd = if (isUser) 4.dp else 16.dp
-                    )
-                )
-                .padding(12.dp)
-        ) {
-            if (isMarkdown) {
-                MarkdownViewer(
-                    markdownText = text,
-                    timestamp = timestamp, // we'll ignore timestamp inside viewer now
-                    modifier = Modifier.fillMaxWidth(),
-                    color = textColor
-                )
-            } else {
-                Text(
-                    text = text,
-                    color = textColor,
-                    style = MaterialTheme.typography.bodyMedium,
-                    lineHeight = 20.sp,
-                    modifier = if (loading) modifier.shimmer() else modifier
-                )
-            }
-        }
-
-        Row(
-            modifier = modifier.widthIn(max = 280.dp),
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            // timestamp under bubble
-            if (isMarkdown) {
-            Text(
-                text = formatTimestamp(timestamp),
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.outline,
-                modifier = Modifier
-                    .padding(top = 4.dp, start = 4.dp, end = 10.dp)
-            )
-            }
-
-            if (!loading) {
-                IconButton(
-                    onClick = {
-                        onClick()
-                    },
-                    modifier = modifier
-                        .size(25.dp)
-                        .padding(start = 3.dp, end = 7.dp)
-                ) {
-                    Icon(Icons.Default.ContentPaste, contentDescription = "Localized description")
-                }
-            }
-        }
-    }
-}
-
-@Composable
-fun ChatImageBubble(
-    imageUri: String,
-    timestamp: Long,
-    isUser: Boolean,
-    modifier: Modifier = Modifier,
-    onClick: () -> Unit = {}
-) {
-    val bubbleColor = Color.DarkGray
-    val horizontalAlignment =
-        if (isUser) Alignment.End else Alignment.Start
-
-    Column(
-        modifier = modifier
-            .fillMaxWidth(),
-        horizontalAlignment = horizontalAlignment
-    ) {
-        Box(
-            modifier = Modifier
-                .widthIn(max = 220.dp) // slightly narrower
-                .background(
-                    color = bubbleColor,
-                    shape = RoundedCornerShape(
-                        topStart = 16.dp,
-                        topEnd = 16.dp,
-                        bottomStart = if (isUser) 16.dp else 4.dp,
-                        bottomEnd = if (isUser) 4.dp else 16.dp
-                    )
-                )
-                .padding(8.dp)
-        ) {
-            AsyncImage(
-                model = Uri.parse(imageUri),
-                contentDescription = "user attachment",
-                contentScale = ContentScale.FillWidth,
-                modifier = Modifier
-                    .size(160.dp)
-                    .background(Color.Black, RoundedCornerShape(12.dp))
-            )
-        }
-
     }
 }
 
 
-@Composable
-fun MarkdownViewer(
-    markdownText: String,
-    timestamp: Long,
-    modifier: Modifier = Modifier,
-    color: Color = MaterialTheme.colorScheme.onSurface
-) {
-    val parsedContent = parseMarkdown(markdownText, color,timestamp)
-
-    Column(modifier = modifier) {
-        parsedContent.forEach { component ->
-            component()
-        }
-    }
-}
-
-@Composable
-fun ChatMessageRow(msg: ChatMessage, modifier: Modifier = Modifier,context: Context) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 12.dp)
-    ) {
-
-        if (msg.imageUri != null) {
-            ChatImageBubble(
-                imageUri = msg.imageUri,
-                timestamp = msg.timestamp,
-                isUser = true,
-                onClick = {
-                    // maybe later: open fullscreen, copy, etc.
-                }
-            )
-            Spacer(modifier = modifier.height(6.dp))
-        }
-
-        ChatBubble(
-            text = msg.prompt,
-            timestamp = msg.timestamp,
-            isUser = true,
-            isMarkdown = false,
-            onClick = {
-                copyToClipboard(context = context, text = msg.prompt)
-            }
-        )
-
-        Spacer(modifier = modifier.height(8.dp))
-
-
-
-        ChatBubble(
-            text = msg.answer,
-            timestamp = msg.timestamp,
-            isUser = false,
-            isMarkdown = true,
-            onClick = {
-                copyToClipboard(context = context, text = msg.answer)
-            }
-        )
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun TopChefBar(modifier: Modifier = Modifier, scrollBehavior: TopAppBarScrollBehavior, onClick: () -> Unit) {
-    CenterAlignedTopAppBar(
-        title = {
-            Text(text = "Recipe Generator")
-        },
-        actions = {
-            IconButton(onClick = {}) {
-                Icon(
-                    imageVector = Icons.Default.SubdirectoryArrowLeft,
-                    contentDescription = ""
-                )
-            }
-
-        },
-        navigationIcon = {
-            IconButton(onClick = {onClick()}) {
-                Icon(
-                    imageVector = Icons.Default.Menu,
-                    contentDescription = ""
-                )
-            }
-        },
-        scrollBehavior = scrollBehavior
-    )
-}
-
-@Composable
-fun SendButton(modifier: Modifier, chefUiState: ChefUiState, context: Context, viewModel: RecipeViewModel,keyboardController: SoftwareKeyboardController?) {
-    IconButton(
-        modifier = modifier.padding(5.dp),
-        onClick = {
-            val enabled = chefUiState.prompt.isNotEmpty() || chefUiState.selectedImages != Uri.EMPTY
-
-            if (chefUiState.prompt.isNotEmpty() && chefUiState.selectedImages != null) {
-                    viewModel.handleEvent(ChefScreenEvents.GenerateRecipeWithImage(
-                        context = context,
-                        prompt = chefUiState.prompt,
-                        imageUri = chefUiState.selectedImages,
-                        sessionId = chefUiState.activeSessionId!!
-                    ))
-                keyboardController?.hide()
-                }else if (chefUiState.prompt.isNotEmpty()) {
-                println("2")
-                    viewModel.handleEvent(ChefScreenEvents.GenerateRecipe(prompt = chefUiState.prompt, sessionId = chefUiState.activeSessionId!!))
-                keyboardController?.hide()
-                }else{
-                    Toast.makeText(context, "Please enter a prompt", Toast.LENGTH_SHORT).show()
-            }
-        }) {
-        Icon(Icons.Filled.Send, contentDescription = "Send message")
-    }
-}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -867,90 +500,52 @@ fun ChefBottomBar(
     BottomAppBar(
 
         actions = {
-//            IconButton(onClick = { copyToClipboard(context, chefUiState.result) }) {
-//                Icon(Icons.Filled.ContentPaste, contentDescription = "Localized description")
-//            }
-            IconButton(onClick = {
-                toggleExpanded()
-            }) {
-                if (chefUiState.selectedImages != null){
-                    AsyncImage(
-                        model = chefUiState.selectedImages,
-                        contentDescription = null,
-                        contentScale = ContentScale.FillWidth
-                    )
-                }else {
-                    Icon(
-                        Icons.Filled.Image,
-                        contentDescription = "Localized description",
-                    )
-                }
+            ImagePickerMenu(
+                selectedImages = chefUiState.selectedImages
+                , expanded = expanded
+                , onCancelClicked = {
+                    viewModel.handleEvent(ChefScreenEvents.ClearImage)
+                    toggleExpanded()
+                                    }
+                , toggleExpanded
+                , launchCamera =  { launchCamera() }
+                , launchPhotoPicker =  { launchPhotoPicker() }
+            )
+            PromptInputField(
+                loading = chefUiState.loading
+                , prompt = chefUiState.prompt
+                , modifier = modifier
+                , onValueChange = {
+                viewModel.handleEvent(ChefScreenEvents.UpdatePrompt(it))
             }
-            DropdownMenu(
-                expanded = expanded,
-                onDismissRequest = { toggleExpanded() }
-            ) {
-                DropdownMenuItem(
-                    text = { Text("Cancel") },
-                    onClick = {
-                        toggleExpanded
-                        viewModel.handleEvent(ChefScreenEvents.ClearImage)
-                       },
-                    leadingIcon = {
-                        Icon(Icons.Default.Cancel, contentDescription = "Localized description")
-                    }
-                )
-                DropdownMenuItem(
-                    text = { Text("Camera") },
-                    onClick = {
-                        toggleExpanded()
-                        launchCamera() },
-                    leadingIcon = {
-                        Icon(Icons.Default.CameraAlt, contentDescription = "Localized description")
-                    }
-                )
-                DropdownMenuItem(
-                    text = { Text("Gallery") },
-                    onClick = {
-                        toggleExpanded()
-                        launchPhotoPicker() },
-                    leadingIcon = {
-                        Icon(Icons.Default.Image, contentDescription = "Localized description")
-                    }
-                )
-            }
-
-            OutlinedTextField(
-                value = if (chefUiState.loading) "" else chefUiState.prompt,
-                onValueChange = {
-                    viewModel.handleEvent(ChefScreenEvents.UpdatePrompt(it))
-                },
-                label = { Text(
-                    "Ask me anything...",
-                    modifier = modifier.clip(RoundedCornerShape(25.dp))
-                ) },
-                modifier = modifier,
-                shape = RoundedCornerShape(25.dp),
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedTextColor = Color.Black,
-                    focusedBorderColor = Color.Transparent,
-                    unfocusedBorderColor = Color.Transparent,
-                    focusedContainerColor = Color.LightGray,
-                    unfocusedContainerColor = Color.LightGray,
-                    focusedLabelColor = Color.Gray,
-                    unfocusedLabelColor = Color.Gray,
-                    disabledLabelColor = Color.Gray,
-                    cursorColor = Color.Black
-                ),
-
-                )
-
+            )
         },
         floatingActionButton = {
-            SendButton(modifier = modifier, chefUiState = chefUiState, context = context, viewModel = viewModel,keyboardController = keyboardController)
+            SendButton(
+                modifier = modifier
+                ,onSendClicked = {
+                    if (chefUiState.prompt.isNotEmpty() && chefUiState.selectedImages != null) {
+                        viewModel.handleEvent(ChefScreenEvents.GenerateRecipeWithImage(
+                            context = context,
+                            prompt = chefUiState.prompt,
+                            imageUri = chefUiState.selectedImages,
+                            sessionId = chefUiState.activeSessionId!!
+                        ))
+                        keyboardController?.hide()
+                    }else if (chefUiState.prompt.isNotEmpty()) {
+                        println("2")
+                        viewModel.handleEvent(ChefScreenEvents.GenerateRecipe(prompt = chefUiState.prompt, sessionId = chefUiState.activeSessionId!!))
+                        keyboardController?.hide()
+                    }else{
+                        Toast.makeText(context, "Please enter a prompt", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            )
         },
     )
 }
+
+
 
 //@Composable
 //fun showAlertDialog(showDeleteDialog: Boolean, sessionToDelete: Int?, viewModel: RecipeViewModel) {
@@ -1006,46 +601,7 @@ fun formatTimestamp(ts: Long): String {
     return sdf.format(java.util.Date(ts))
 }
 
-fun saveImageToInternalStorage(context: Context, uri: Uri,viewModel: RecipeViewModel) {
-    val fileName = UUID.randomUUID().toString() + ".jpg"
-    val inputStream = context.contentResolver.openInputStream(uri)
 
-    val outputStream = context.openFileOutput(fileName, Context.MODE_PRIVATE)
-    inputStream?.use { input ->
-        outputStream.use { output ->
-            input.copyTo(output)
-        }
-    }
-
-    val savedImageFile = File(context.filesDir, fileName)
-
-    val savedImageUri: Uri = FileProvider.getUriForFile(
-        context,
-        "${context.packageName}.fileprovider",
-        savedImageFile
-    )
-
-    viewModel.handleEvent(ChefScreenEvents.UpdateSelectedImage(savedImageUri))
-}
-
-fun launchPhotoPicker(photoPicker : ManagedActivityResultLauncher<PickVisualMediaRequest, Uri?>) =
-    photoPicker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
-
-
-fun launchCamera(context: Context, cameraUri : (Uri?) -> Unit, permissionLauncher: ManagedActivityResultLauncher<String, Boolean>, cameraLauncher:  ManagedActivityResultLauncher<Uri, Boolean>) {
-    if (ContextCompat.checkSelfPermission(
-            context, android.Manifest.permission.CAMERA
-        ) == PackageManager.PERMISSION_GRANTED
-    ) {
-       val camera = context.contentResolver.insert(
-            android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-            android.content.ContentValues()
-        )
-       cameraUri(camera)
-    } else {
-        permissionLauncher.launch(android.Manifest.permission.CAMERA)
-    }
-}
 
 
 

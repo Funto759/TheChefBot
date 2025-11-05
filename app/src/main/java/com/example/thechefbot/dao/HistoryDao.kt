@@ -25,6 +25,9 @@ interface ChatSessionDao {
     @Query("SELECT * FROM session_table WHERE sessionId = :id LIMIT 1")
     suspend fun getSessionById(id: Int): ChatSession?
 
+    @Query("SELECT * FROM session_table WHERE sessionId = :id LIMIT 1")
+    fun getSessionByIdFlow(id: Int): Flow<ChatSession?>
+
     @Query("DELETE FROM session_table")
     suspend fun deleteAllSessions()
 

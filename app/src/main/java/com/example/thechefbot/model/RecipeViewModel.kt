@@ -24,7 +24,8 @@ import kotlinx.coroutines.launch
 
 class RecipeViewModel(
     private val generativeModel: GenerativeModel,
-    private val chatRepository: ChatRepository
+    private val chatRepository: ChatRepository,
+    private val sessionPrefs: SessionPrefs
 ) : ViewModel() {
 
     private val _activeSessionId = MutableStateFlow<Int?>(null)
@@ -38,7 +39,7 @@ class RecipeViewModel(
 
     init {
         viewModelScope.launch {
-            val newSessionId = chatRepository.createNewSession("New Chat")
+            val newSessionId = sessionPrefs.getLastSessionId()
             openSession(newSessionId)
         }
     }
@@ -69,18 +70,38 @@ class RecipeViewModel(
                 emptyList()
             )
 
+
+    val selectedSession : StateFlow<ChatSession?> = activeSessionId
+        .flatMapLatest { sessionId ->
+            if ( sessionId == null) {
+                flowOf(null)
+            } else {
+                chatRepository.getSession(sessionId)
+            }
+        }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = null
+        )
+
+
     // call this when you open the chat screen
     fun openSession(sessionId: Int?) {
         _activeSessionId.value = sessionId
+        viewModelScope.launch {
+            sessionPrefs.saveLastSessionId(sessionId ?: return@launch)
+        }
         _chefUiState.update {
             it.copy(activeSessionId = sessionId)
         }
+
     }
 
     // NEW: Create a new chat session
-    fun createNewSession() {
+    fun createNewSession(title : String? = null) {
         viewModelScope.launch {
-            val newSessionId = chatRepository.createNewSession("New Chat")
+            val newSessionId = chatRepository.createNewSession(title = title)
             openSession(newSessionId)
 
             // Clear UI state for fresh start
@@ -203,6 +224,9 @@ class RecipeViewModel(
                         )
                     }
                     return@launch
+                }
+                if ((selectedSession.value?.title ?: null) == null){
+                    renameSession(sessionId, prompt)
                 }
 
                 // 3. Save prompt+answer to DB under this session
@@ -387,6 +411,10 @@ class RecipeViewModel(
         _chefUiState.update {
             it.copy(showDeleteDialog = status)
         }
+    }
+
+    fun updateSelectedSession(sessionId: Int?){
+
     }
 
 
