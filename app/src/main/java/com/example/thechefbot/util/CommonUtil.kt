@@ -7,18 +7,22 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
 import android.widget.Toast
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.sp
-import com.example.thechefbot.screen.formatTimestamp
-import com.google.firebase.Timestamp
 import java.io.InputStream
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 object CommonUtil {
+
+    fun formatTimestamp(ts: Long): String {
+        val sdf = SimpleDateFormat("dd MMM yyyy • HH:mm", Locale.getDefault())
+        return sdf.format(Date(ts))
+    }
     fun copyToClipboard(context: Context, text: String) {
         val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
         val clip = ClipData.newPlainText("Copied Recipe", text)

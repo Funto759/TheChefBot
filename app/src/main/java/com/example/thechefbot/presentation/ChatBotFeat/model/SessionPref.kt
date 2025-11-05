@@ -1,4 +1,4 @@
-package com.example.thechefbot.model
+package com.example.thechefbot.presentation.ChatBotFeat.model
 
 import android.content.Context
 

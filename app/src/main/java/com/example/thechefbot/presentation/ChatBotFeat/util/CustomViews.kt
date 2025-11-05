@@ -1,7 +1,9 @@
-package com.example.thechefbot.screen
+package com.example.thechefbot.presentation.ChatBotFeat.util
 
 import android.content.Context
 import android.net.Uri
+import android.widget.Toast
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -16,13 +18,17 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.Cancel
 import androidx.compose.material.icons.filled.ContentPaste
 import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.MenuOpen
 import androidx.compose.material.icons.filled.Send
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.CardDefaults
@@ -31,9 +37,11 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.NavigationDrawerItem
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
@@ -48,200 +56,31 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.thechefbot.R
-import com.example.thechefbot.model.data.ChatMessage
-import com.example.thechefbot.model.data.ChatSession
-import com.example.thechefbot.model.state.ChefUiState
+import com.example.thechefbot.presentation.ChatBotFeat.model.data.ChatMessage
+import com.example.thechefbot.presentation.ChatBotFeat.model.data.ChatSession
 import com.example.thechefbot.util.CommonUtil.copyToClipboard
+import com.example.thechefbot.util.CommonUtil.formatTimestamp
 import com.example.thechefbot.util.CommonUtil.parseMarkdown
 import com.example.thechefbot.util.shimmer
 
 
-@Composable
-fun MessagesList(
-    modifier: Modifier,
-    paddingValues: PaddingValues,
-    messages: List<ChatMessage>,
-    context: Context,
-    chefUiState: ChefUiState
-) {
-    LazyColumn(
-        modifier = modifier
-            .fillMaxSize()
-            .padding(horizontal = 16.dp)
-            .padding(paddingValues = paddingValues),
-        verticalArrangement = Arrangement.Top,
-        horizontalAlignment = Alignment.Start
-    ) {
-        items(messages.size) { index ->
-            val msg = messages[index]
-            ChatMessageRow(msg = msg, context = context)
-        }
-
-        if (chefUiState.loading) {
-            item {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    horizontalArrangement = Arrangement.End
-                ) {
-                    ChatBubble(
-                        text = chefUiState.prompt,
-                        timestamp = 11,
-                        isUser = true,
-                        isMarkdown = false,
-                        loading = true
-                    )
-                }
-            }
-        }
-
-        if (chefUiState.errorState) {
-            item {
-                Text(
-                    text = chefUiState.error,
-                    color = MaterialTheme.colorScheme.error,
-                    style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier.padding(16.dp)
-                )
-            }
-        }
-    }
-}
-
-@Composable
-fun InitialConversationScreen(
-    modifier: Modifier,
-    paddingValues: PaddingValues,
-    session: ChatSession?,
-    messages: List<ChatMessage>
-) {
-    LazyColumn(
-        modifier = modifier
-            .fillMaxSize()
-            .padding(paddingValues = paddingValues),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        item {
-            EmptyConversationScreen(modifier = modifier, session = session, messages = messages)
-        }
-    }
-}
 
 
 
-@Composable
-fun EmptyConversationScreen(
-    modifier: Modifier = Modifier,
-    session: ChatSession?,
-    messages: List<ChatMessage>
-) {
-    Icon(
-        painter = painterResource(R.drawable.ic_launcher_foreground),
-        contentDescription = "",
-        tint = Color.Unspecified,
-        modifier = modifier.padding(5.dp)
-    )
-    Text(text = "Hello, Ask me Anything....", fontSize = 24.sp)
-    session?.lastUsedTimeStamp?.let {
-        if (messages.isEmpty()){
-            Text(text = "Created At: ${formatTimestamp(session.lastUsedTimeStamp)}")
-        }else{
-            Text(text = "Last Update: ${formatTimestamp(session.lastUsedTimeStamp)}")
-        }
-    }
-    ContentBody(modifier = Modifier)
-}
 
 
-@Composable
-fun SendButton(modifier: Modifier
-               ,onSendClicked: () -> Unit
-) {
-    IconButton(
-        modifier = modifier.padding(5.dp),
-        onClick = {
-            onSendClicked()
-        }) {
-        Icon(Icons.Filled.Send, contentDescription = "Send message",
-            tint  = colorResource(R.color.orange))
-    }
-}
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun TopChefBar(modifier: Modifier = Modifier, scrollBehavior: TopAppBarScrollBehavior, onClick: () -> Unit, text: String?) {
-    CenterAlignedTopAppBar(
-        title = {
-            Text(text = if (text.isNullOrEmpty()) "Recipe Generator" else text)
-        },
-        actions = {
-            IconButton(onClick = {}) {
-                Icon(
-                    imageVector = Icons.Default.Settings,
-                    contentDescription = "",
-                    tint = colorResource(R.color.orange)
-                )
-            }
-
-        },
-        navigationIcon = {
-            IconButton(onClick = {onClick()}) {
-                Icon(
-                    imageVector = Icons.Default.Menu,
-                    contentDescription = "",
-                    tint = colorResource(R.color.orange)
-                )
-            }
-        },
-        scrollBehavior = scrollBehavior
-    )
-}
 
 
-@Composable
-fun ContentBody(modifier: Modifier = Modifier) {
-    Spacer(modifier = modifier.height(24.dp))
-
-    Icon(
-        painter = painterResource(R.drawable.ic_ai_o),
-        contentDescription = "",
-        tint = Color.Unspecified
-    )
-    Spacer(modifier = modifier.height(14.dp))
-    ElevatedCardExample()
-    Spacer(modifier = modifier.height(14.dp))
-    ElevatedCardExample()
-    Spacer(modifier = modifier.height(24.dp))
-
-    Icon(
-        painter = painterResource(R.drawable.ic_ai_p),
-        contentDescription = "",
-        tint = Color.Unspecified,
-    )
-    Spacer(modifier = modifier.height(14.dp))
-    ElevatedCardExample(image = painterResource(R.drawable.ic_marker_2))
-    Spacer(modifier = modifier.height(14.dp))
-    ElevatedCardExample(image = painterResource(R.drawable.ic_marker_2))
-    Spacer(modifier = modifier.height(24.dp))
 
 
-//    Icon(
-//        painter = painterResource(R.drawable.ic_sun),
-//        contentDescription = "",
-//        tint = Color.Unspecified
-//    )
-//    Spacer(modifier = modifier.height(14.dp))
-//    ElevatedCardExample(image = painterResource(R.drawable.ic_marker_2))
-//    Spacer(modifier = modifier.height(14.dp))
-//    ElevatedCardExample(image = painterResource(R.drawable.ic_marker_2))
-//    Spacer(modifier = modifier.height(24.dp))
 
-}
+
+
 
 
 
@@ -328,7 +167,7 @@ fun ChatBubble(
                         onClick()
                     },
                     modifier = modifier
-                        .size(15.dp)
+                        .size(22.dp)
                         .padding(start = 3.dp, end = 7.dp)
                 ) {
                     Icon(Icons.Default.ContentPaste, contentDescription = "Localized description")
@@ -341,10 +180,8 @@ fun ChatBubble(
 @Composable
 fun ChatImageBubble(
     imageUri: String,
-    timestamp: Long,
     isUser: Boolean,
     modifier: Modifier = Modifier,
-    onClick: () -> Unit = {}
 ) {
     val bubbleColor = Color.DarkGray
     val horizontalAlignment =
@@ -400,7 +237,20 @@ fun MarkdownViewer(
 }
 
 @Composable
-fun ChatMessageRow(msg: ChatMessage, modifier: Modifier = Modifier,context: Context) {
+fun ChatMessageRow(
+    msg: ChatMessage
+    ,showAlertDialog: Boolean = false
+    , modifier: Modifier = Modifier
+    ,context: Context
+    ,session: ChatSession?,
+    onDismiss: () -> Unit = {},
+    onConfirm: () -> Unit = {},
+    onCancel: () -> Unit = {}
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+    ) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -410,11 +260,7 @@ fun ChatMessageRow(msg: ChatMessage, modifier: Modifier = Modifier,context: Cont
         if (msg.imageUri != null) {
             ChatImageBubble(
                 imageUri = msg.imageUri,
-                timestamp = msg.timestamp,
                 isUser = true,
-                onClick = {
-                    // maybe later: open fullscreen, copy, etc.
-                }
             )
             Spacer(modifier = modifier.height(6.dp))
         }
@@ -447,6 +293,22 @@ fun ChatMessageRow(msg: ChatMessage, modifier: Modifier = Modifier,context: Cont
 
 
     }
+        if (showAlertDialog) {
+            Toast.makeText(context, "Delete", Toast.LENGTH_SHORT).show()
+//            showAlertDialog(
+//                onDismissRequest = {
+//                    onDismiss()
+//                },
+//                onConfirm = {
+//                    onConfirm()
+//                },
+//                onCancel = {
+//                    onCancel()
+//                },
+//                sessionToDelete = session?.sessionId ?: null
+//            )
+        }
+}
 }
 
 
@@ -480,98 +342,3 @@ fun ElevatedCardExample(modifier: Modifier = Modifier, image : Painter = painter
 }
 
 
-@Composable
-fun PromptInputField(
-    loading : Boolean,
-    prompt : String,
-    onValueChange: (String) -> Unit,
-    modifier: Modifier = Modifier
-) {
-    OutlinedTextField(
-        value = if (loading) "" else prompt,
-        onValueChange = {
-            onValueChange(it)
-        },
-        label = {
-            Text(
-                "Ask me anything...",
-                modifier = modifier.clip(RoundedCornerShape(25.dp))
-            )
-        },
-        modifier = modifier,
-        shape = RoundedCornerShape(25.dp),
-        colors = OutlinedTextFieldDefaults.colors(
-            focusedTextColor = Color.Black,
-            focusedBorderColor = Color.Transparent,
-            unfocusedBorderColor = Color.Transparent,
-            focusedContainerColor = Color.LightGray,
-            unfocusedContainerColor = Color.LightGray,
-            focusedLabelColor = Color.Gray,
-            unfocusedLabelColor = Color.Gray,
-            disabledLabelColor = Color.Gray,
-            cursorColor = Color.Black
-        ),
-    )
-}
-
-@Composable
-fun ImagePickerMenu(
-    selectedImages: Uri?,
-    expanded: Boolean,
-    onCancelClicked: () -> Unit,
-    toggleExpanded: () -> Unit,
-    launchCamera: () -> Unit,
-    launchPhotoPicker: () -> Unit
-) {
-    IconButton(onClick = {
-        toggleExpanded()
-    }) {
-        if (selectedImages != null) {
-            AsyncImage(
-                model = selectedImages,
-                contentDescription = null,
-                contentScale = ContentScale.FillWidth
-            )
-        } else {
-            Icon(
-                Icons.Filled.Image,
-                contentDescription = "Localized description",
-                tint = colorResource(R.color.orange)
-            )
-        }
-    }
-    DropdownMenu(
-        expanded = expanded,
-        onDismissRequest = { toggleExpanded() }
-    ) {
-        DropdownMenuItem(
-            text = { Text("Cancel") },
-            onClick = {
-                onCancelClicked()
-            },
-            leadingIcon = {
-                Icon(Icons.Default.Cancel, contentDescription = "Localized description")
-            }
-        )
-        DropdownMenuItem(
-            text = { Text("Camera") },
-            onClick = {
-                toggleExpanded()
-                launchCamera()
-            },
-            leadingIcon = {
-                Icon(Icons.Default.CameraAlt, contentDescription = "Localized description")
-            }
-        )
-        DropdownMenuItem(
-            text = { Text("Gallery") },
-            onClick = {
-                toggleExpanded()
-                launchPhotoPicker()
-            },
-            leadingIcon = {
-                Icon(Icons.Default.Image, contentDescription = "Localized description")
-            }
-        )
-    }
-}

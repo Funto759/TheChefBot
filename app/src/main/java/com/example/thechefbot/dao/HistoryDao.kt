@@ -5,7 +5,7 @@ import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Update
-import com.example.thechefbot.model.data.ChatSession
+import com.example.thechefbot.presentation.ChatBotFeat.model.data.ChatSession
 
 import kotlinx.coroutines.flow.Flow
 

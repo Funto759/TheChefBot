@@ -1,4 +1,4 @@
-package com.example.thechefbot.model.data
+package com.example.thechefbot.presentation.ChatBotFeat.model.data
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey

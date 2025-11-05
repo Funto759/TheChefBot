@@ -1,4 +1,4 @@
-package com.example.thechefbot.model.events
+package com.example.thechefbot.presentation.ChatBotFeat.model.events
 
 import android.content.Context
 import android.net.Uri
@@ -20,7 +20,7 @@ sealed interface ChefScreenEvents {
 //    data object RenameSession : ChefScreenEvents
 
 
-    data class UpdateShowDialogStatus(val status : Boolean) : ChefScreenEvents
+    data class UpdateShowDialogStatus(val status : Boolean,val sessionToDelete : Int?) : ChefScreenEvents
 
 
     data class OpenSession(val sessionId : Int) : ChefScreenEvents
@@ -32,6 +32,10 @@ sealed interface ChefScreenEvents {
     data class UpdateSessionToDelete(val sessionId : Int?) : ChefScreenEvents
 
     data object ResetSessionToDelete : ChefScreenEvents
+
+    data object ToggleGalleryMenuExpanded : ChefScreenEvents
+
+    data object ToggleSettingsMenuExpanded : ChefScreenEvents
 
 
 

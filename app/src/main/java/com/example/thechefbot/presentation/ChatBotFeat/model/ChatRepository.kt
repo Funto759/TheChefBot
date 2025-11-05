@@ -1,9 +1,9 @@
-package com.example.thechefbot.model
+package com.example.thechefbot.presentation.ChatBotFeat.model
 
 import com.example.thechefbot.dao.ChatDao
 import com.example.thechefbot.dao.ChatSessionDao
-import com.example.thechefbot.model.data.ChatMessage
-import com.example.thechefbot.model.data.ChatSession
+import com.example.thechefbot.presentation.ChatBotFeat.model.data.ChatMessage
+import com.example.thechefbot.presentation.ChatBotFeat.model.data.ChatSession
 import kotlinx.coroutines.flow.Flow
 
 class ChatRepository(

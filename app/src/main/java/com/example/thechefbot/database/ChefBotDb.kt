@@ -1,11 +1,13 @@
-package com.example.thechefbot.dao
+package com.example.thechefbot.database
 
 import androidx.room.Database
 import androidx.room.RoomDatabase
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
-import com.example.thechefbot.model.data.ChatMessage
-import com.example.thechefbot.model.data.ChatSession
+import com.example.thechefbot.dao.ChatDao
+import com.example.thechefbot.dao.ChatSessionDao
+import com.example.thechefbot.presentation.ChatBotFeat.model.data.ChatMessage
+import com.example.thechefbot.presentation.ChatBotFeat.model.data.ChatSession
 
 @Database(entities = [ChatSession::class, ChatMessage::class], version = 3, exportSchema = true)
 abstract class RecipeDatabase : RoomDatabase() {

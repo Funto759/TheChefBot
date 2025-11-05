@@ -3,7 +3,7 @@ package com.example.thechefbot.dao
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Query
-import com.example.thechefbot.model.data.ChatMessage
+import com.example.thechefbot.presentation.ChatBotFeat.model.data.ChatMessage
 import kotlinx.coroutines.flow.Flow
 
 @Dao

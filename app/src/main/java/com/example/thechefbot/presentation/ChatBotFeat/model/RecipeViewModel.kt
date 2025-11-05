@@ -1,13 +1,13 @@
-package com.example.thechefbot.model
+package com.example.thechefbot.presentation.ChatBotFeat.model
 
 import android.content.Context
 import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.thechefbot.model.data.ChatMessage
-import com.example.thechefbot.model.data.ChatSession
-import com.example.thechefbot.model.events.ChefScreenEvents
-import com.example.thechefbot.model.state.ChefUiState
+import com.example.thechefbot.presentation.ChatBotFeat.model.data.ChatMessage
+import com.example.thechefbot.presentation.ChatBotFeat.model.data.ChatSession
+import com.example.thechefbot.presentation.ChatBotFeat.model.events.ChefScreenEvents
+import com.example.thechefbot.presentation.ChatBotFeat.model.state.ChefUiState
 import com.example.thechefbot.util.CommonUtil.getBitmapFromUri
 import com.google.ai.client.generativeai.GenerativeModel
 import com.google.ai.client.generativeai.type.content
@@ -21,6 +21,7 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.serialization.MissingFieldException
 
 class RecipeViewModel(
     private val generativeModel: GenerativeModel,
@@ -272,7 +273,7 @@ class RecipeViewModel(
                             e.message?.contains("timeout") == true ->
                         "Network error. Please check your connection."
 
-                    e is kotlinx.serialization.MissingFieldException ->
+                    e is MissingFieldException ->
                         "Service temporarily unavailable. Please try again."
 
                     else ->
@@ -374,7 +375,7 @@ class RecipeViewModel(
                             e.message?.contains("timeout") == true ->
                         "Network error. Please check your connection."
 
-                    e is kotlinx.serialization.MissingFieldException ->
+                    e is MissingFieldException ->
                         "Service temporarily unavailable. Please try again."
 
                     else ->
@@ -407,21 +408,41 @@ class RecipeViewModel(
         }
     }
 
-    fun updateShowDeleteDialog(status : Boolean){
+    fun updateShowDeleteDialog(status : Boolean, sessionToDelete : Int?){
         _chefUiState.update {
-            it.copy(showDeleteDialog = status)
+            it.copy(
+                showDeleteDialog = status
+                , sessionToDelete = sessionToDelete
+            )
         }
     }
 
-    fun updateSelectedSession(sessionId: Int?){
 
+    fun toggleGalleryMenu(){
+        _chefUiState.update {
+            it.copy(expanded = !it.expanded)
+        }
     }
 
+    fun toggleSettingsMenu(){
+        _chefUiState.update {
+            it.copy(settingsToggleExpanded = !it.settingsToggleExpanded)
+        }
+    }
 
     fun handleEvent(event: ChefScreenEvents) {
         when (event) {
+            is ChefScreenEvents.ToggleGalleryMenuExpanded -> {
+                toggleGalleryMenu()
+            }
+            is ChefScreenEvents.ToggleSettingsMenuExpanded -> {
+                toggleSettingsMenu()
+            }
+            is ChefScreenEvents.UpdateSelectedImage -> {
+                updateSelectedImage(event.imageUri)
+            }
             is ChefScreenEvents.UpdateShowDialogStatus -> {
-                updateShowDeleteDialog(event.status)
+                updateShowDeleteDialog(event.status, event.sessionToDelete)
             }
             is ChefScreenEvents.UpdateSessionToDelete -> {
                 updateSessionToDelete(event.sessionId!!)
@@ -443,10 +464,6 @@ class RecipeViewModel(
 
             is ChefScreenEvents.ClearPrompt -> {
                 clearPrompt()
-            }
-
-            is ChefScreenEvents.UpdateSelectedImage -> {
-                updateSelectedImage(event.imageUri)
             }
 
             is ChefScreenEvents.ResetState -> {

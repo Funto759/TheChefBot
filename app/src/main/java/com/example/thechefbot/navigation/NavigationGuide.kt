@@ -5,7 +5,7 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import com.example.thechefbot.screen.RecipeScreen
+import com.example.thechefbot.presentation.ChatBotFeat.screen.ChatBotScreen
 import kotlinx.serialization.Serializable
 
 @Composable
@@ -16,7 +16,7 @@ fun NavigationGuide(navController: NavHostController) {
         startDestination = NavRoute.RecipeScreen,
         modifier = Modifier
     ) {
-        composable <NavRoute.RecipeScreen>{ RecipeScreen(navHostController = navController) }
+        composable <NavRoute.RecipeScreen>{ ChatBotScreen(navHostController = navController) }
     }
 
 }

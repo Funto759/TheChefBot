@@ -1,4 +1,4 @@
-package com.example.thechefbot.screen
+package com.example.thechefbot.presentation.splashScreenFeat
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Animatable
