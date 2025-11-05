@@ -1,0 +1,76 @@
+{
+  "project_info": {
+    "project_number": "143493035715",
+    "project_id": "newsdeluxe-6324a",
+    "storage_bucket": "newsdeluxe-6324a.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:143493035715:android:892f83de82034f1c2d9476",
+        "android_client_info": {
+          "package_name": "com.example.newsdeluxe"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "143493035715-mgapb341danp16mtln2hnu2ah662i6fr.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.newsdeluxe",
+            "certificate_hash": "ce9d2696bb0bbacabf62c4cb7afcd0530298da92"
+          }
+        },
+        {
+          "client_id": "143493035715-q5g9p5kuckphminjbpasdcii5ivqnm80.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAZDlxdlpCO3WZf_rheJMDqBHoDMW7q9OE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "143493035715-q5g9p5kuckphminjbpasdcii5ivqnm80.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:143493035715:android:6e791541fb8e637c2d9476",
+        "android_client_info": {
+          "package_name": "com.example.thechefbot"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "143493035715-q5g9p5kuckphminjbpasdcii5ivqnm80.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAZDlxdlpCO3WZf_rheJMDqBHoDMW7q9OE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "143493035715-q5g9p5kuckphminjbpasdcii5ivqnm80.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
