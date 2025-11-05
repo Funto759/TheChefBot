@@ -38,7 +38,7 @@ fun TopChefBar(
     text: String?) {
     CenterAlignedTopAppBar(
         title = {
-            Text(text = if (text.isNullOrEmpty()) "Recipe Generator" else text)
+            Text(text = if (text.isNullOrEmpty()) "Recipe Generator" else text, color = colorResource(R.color.orange))
         },
         actions = {
             IconButton(onClick = {
@@ -63,7 +63,8 @@ fun TopChefBar(
                         Icon(
                             imageVector = Icons.Default.Person
                             , contentDescription = "Localized description"
-                            ,modifier = modifier.padding(5.dp)
+                            ,modifier = modifier.padding(5.dp),
+                            tint = colorResource(R.color.orange)
                         )
                     }
                 )
@@ -75,7 +76,7 @@ fun TopChefBar(
                     },
                     leadingIcon = {
                         Icon(Icons.Default.Delete, contentDescription = "Localized description"
-                            ,modifier = modifier.padding(5.dp))
+                            ,modifier = modifier.padding(5.dp),tint = colorResource(R.color.orange))
                     }
                 )
                 DropdownMenuItem(
@@ -85,7 +86,7 @@ fun TopChefBar(
                     },
                     leadingIcon = {
                         Icon(Icons.Default.InvertColors, contentDescription = "Localized description"
-                        ,modifier = modifier.padding(5.dp))
+                        ,modifier = modifier.padding(5.dp),tint = colorResource(R.color.orange))
                     }
                 )
             }

@@ -17,6 +17,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Cancel
 import androidx.compose.material.icons.filled.MenuOpen
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -27,6 +28,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
@@ -39,9 +41,11 @@ import kotlin.collections.forEach
 @Composable
 fun DrawerContentView(
     modifier: Modifier,
+    email : String,
     context: android.content.Context,
     expandDrawer: () -> Unit,
     showDeleteDialogStatus: Boolean = false,
+    onSettingsClicked: () -> Unit,
     newChat:() -> Unit,
     showDeleteDialog: () -> Unit,
     allSessions: List<ChatSession>,
@@ -75,13 +79,33 @@ fun DrawerContentView(
                     .align(Alignment.CenterHorizontally)
             )
             Text(
-                "Funmito",
+                email,
                 modifier = modifier
                     .padding(5.dp)
                     .align(Alignment.CenterHorizontally),
-                style = MaterialTheme.typography.titleMedium
+                style = MaterialTheme.typography.titleMedium,
+                color = colorResource(R.color.orange)
             )
             HorizontalDivider()
+
+            NavigationDrawerItem(
+                modifier = modifier
+                    .padding(10.dp)
+                    .align(Alignment.CenterHorizontally),
+                shape = RoundedCornerShape(16.dp),
+                label = { Text("Settings") },
+                selected = false,
+                icon = {
+                    Icon(
+                        imageVector = Icons.Default.Settings,
+                        contentDescription = null,
+                        tint = colorResource(R.color.pink)
+                    )
+                },
+                onClick = {
+                    onSettingsClicked()
+                }
+            )
 
             NavigationDrawerItem(
                 modifier = modifier
@@ -93,7 +117,8 @@ fun DrawerContentView(
                 icon = {
                     Icon(
                         painterResource(R.drawable.ic_chat_save),
-                        contentDescription = null
+                        contentDescription = null,
+                        tint = Color.Unspecified
                     )
                 },
                 onClick = {
@@ -110,7 +135,8 @@ fun DrawerContentView(
                 icon = {
                     Icon(
                         painterResource(R.drawable.ic_chat_del),
-                        contentDescription = null
+                        contentDescription = null,
+                        tint = Color.Unspecified
                     )
                 },
                 onClick = {
@@ -171,7 +197,8 @@ fun ChatHistoryItem(
         icon = {
             Icon(
                 painter = painterResource(R.drawable.ic_chat_options),
-                contentDescription = null
+                contentDescription = null,
+                tint = Color.Unspecified
             )
         },
         label = {

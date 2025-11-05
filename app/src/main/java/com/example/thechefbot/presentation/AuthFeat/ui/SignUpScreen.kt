@@ -1,5 +1,6 @@
 package com.example.thechefbot.presentation.AuthFeat.ui
 
+import android.content.Context
 import android.inputmethodservice.Keyboard
 import android.util.Log
 import android.widget.Toast
@@ -60,25 +61,15 @@ import com.example.thechefbot.navigation.NavRoute
 import com.example.thechefbot.navigation.Routes
 import com.example.thechefbot.presentation.AuthFeat.events.LoginEvents
 import com.example.thechefbot.presentation.AuthFeat.model.LoginViewModel
+import com.example.thechefbot.presentation.AuthFeat.state.LoginState
+import com.example.thechefbot.presentation.AuthFeat.state.UserLoginState
+import com.example.thechefbot.presentation.AuthFeat.util.BoxItems
+import com.example.thechefbot.presentation.AuthFeat.util.EditableView
+import com.example.thechefbot.presentation.AuthFeat.util.LoginViewAuth
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun SignUpUserScreen(modifier: Modifier = Modifier, navController: NavHostController, paddingValues: PaddingValues) {
-    val viewModel = koinViewModel<LoginViewModel>()
-    SignUpLogin(
-//        viewModel = viewModel,
-        navController = navController,
-        paddingValues = paddingValues
-    )
-}
-
-
-@Composable
-fun SignUpLogin(modifier: Modifier = Modifier,
-                navController: NavHostController,
-                paddingValues: PaddingValues
-) {
-
     val viewModel = koinViewModel<LoginViewModel>()
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -86,6 +77,28 @@ fun SignUpLogin(modifier: Modifier = Modifier,
     val loginUiState by viewModel.loginUiState.collectAsStateWithLifecycle()
     val authUiState by viewModel.authStatus.collectAsStateWithLifecycle()
 
+    SignUpLogin(
+        viewModel = viewModel,
+        navController = navController,
+        paddingValues = paddingValues,
+        context = context,
+        credentialManager = credentialManager,
+        loginUiState = loginUiState,
+        authUiState = authUiState
+    )
+}
+
+
+@Composable
+fun SignUpLogin(modifier: Modifier = Modifier,
+                loginUiState: LoginState,
+                authUiState: UserLoginState,
+                viewModel: LoginViewModel,
+                context: Context,
+                credentialManager: CredentialManager,
+                navController: NavHostController,
+                paddingValues: PaddingValues
+) {
     when{
         loginUiState.navigateToHomeScreen -> {
             navController.navigate(Routes.Tabs){
@@ -106,91 +119,20 @@ fun SignUpLogin(modifier: Modifier = Modifier,
 
     Box(modifier = modifier.fillMaxSize().padding(paddingValues = paddingValues)) {
 
-
-        Column(
-            modifier.fillMaxSize(),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-
-
-            Spacer(modifier = modifier.height(58.dp))
-
-            Image(
-                painter = painterResource(id = R.drawable.ic_launcher_foreground),
-                contentDescription = "Image",
-                modifier = modifier.height(100.dp)
-            )
-            Spacer(modifier = modifier.height(8.dp))
-
-            Text(
-                text = " SignUp to get Started",
-                fontSize = MaterialTheme.typography.titleLarge.fontSize,
-                color = Color.White
-
-            )
-
-            Spacer(modifier = modifier.height(26.dp))
-
-            val state = if (loginUiState.signUpPasswordVisible) {
-                VisualTransformation.None
-            } else {
-                PasswordVisualTransformation()
+        SignUpContent(modifier
+            , authUiState
+            , loginUiState
+            , viewModel
+            , onSignUpClick = {
+                viewModel.handleIntents(LoginEvents.SignUpUser)
             }
-
-
-            SignUpTextFields(
-                modifier = modifier,
-                email = authUiState.signUpEmail,
-                password = authUiState.signUpPassword,
-                passwordState = state,
-                passWordVisible = loginUiState.signUpPasswordVisible,
-                viewModel = viewModel,
-                fullName = authUiState.signUpFullName,
-                phoneNumber = authUiState.signUpPhoneNumber
-            )
-
-
-            Spacer(modifier = modifier.height(18.dp))
-
-            Button(
-                shape = Shapes().large,
-                onClick = {
-                    viewModel.handleIntents(LoginEvents.SignUpUser)
-                },
-                modifier = modifier
-                    .fillMaxWidth()
-                    .padding(end = 12.dp, start = 12.dp)
-                    .height(50.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = colorResource(R.color.orange))
-            ) {
-                Text(text = "SignUp")
+            , onGoogleClick = {
+                viewModel.handleIntents(LoginEvents.GoogleSignIn(credentialManager = credentialManager, context = context,fromSignUp = true))
             }
-
-            Spacer(modifier = modifier.height(18.dp))
-            Text(
-                text = "Or continue with",
-                color = Color.Gray
-            )
-            Spacer(modifier = modifier.height(18.dp))
-            Row(
-                modifier = modifier
-                    .fillMaxWidth()
-                    .padding(end = 12.dp, start = 12.dp),
-                horizontalArrangement = Arrangement.SpaceAround,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                BoxItems(modifier.clickable{
-                    viewModel.handleIntents(LoginEvents.GoogleSignIn(credentialManager = credentialManager, context = context,fromSignUp = true))
-                }, R.drawable.ic_google, text = "Google")
-
+            , goToSignUp = {
+                navController.navigate(Routes.Login)
             }
-            Spacer(modifier = modifier.height(18.dp))
-            LoginView(modifier = modifier, navController = navController)
-
-
-        }
-
+        )
         when{
             authUiState.isLoading ->{
                 CircularProgressIndicator(
@@ -203,156 +145,152 @@ fun SignUpLogin(modifier: Modifier = Modifier,
 }
 
 @Composable
+fun SignUpContent(
+    modifier: Modifier = Modifier,
+    authUiState: UserLoginState,
+    loginUiState: LoginState,
+    viewModel: LoginViewModel,
+    onSignUpClick : () -> Unit,
+    onGoogleClick : () -> Unit,
+    goToSignUp : () -> Unit
+) {
+    Column(
+        modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+
+
+        Spacer(modifier = modifier.height(58.dp))
+
+        Image(
+            painter = painterResource(id = R.drawable.ic_launcher_foreground),
+            contentDescription = "Image",
+            modifier = modifier.height(100.dp)
+        )
+        Spacer(modifier = modifier.height(8.dp))
+
+        Text(
+            text = " SignUp to get Started",
+            fontSize = MaterialTheme.typography.titleLarge.fontSize,
+            color = Color.White
+
+        )
+
+        Spacer(modifier = modifier.height(26.dp))
+
+        SignUpTextFields(
+            modifier = modifier,
+            email = authUiState.signUpEmail,
+            password = authUiState.signUpPassword,
+            passWordVisible = loginUiState.signUpPasswordVisible,
+            viewModel = viewModel,
+            fullName = authUiState.signUpFullName,
+            phoneNumber = authUiState.signUpPhoneNumber
+        )
+
+
+        Spacer(modifier = modifier.height(18.dp))
+
+        Button(
+            shape = Shapes().large,
+            onClick = {
+                onSignUpClick()
+            },
+            modifier = modifier
+                .fillMaxWidth()
+                .padding(end = 12.dp, start = 12.dp)
+                .height(50.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = colorResource(R.color.orange))
+        ) {
+            Text(text = "SignUp")
+        }
+
+        Spacer(modifier = modifier.height(18.dp))
+        Text(
+            text = "Or continue with",
+            color = Color.Gray
+        )
+        Spacer(modifier = modifier.height(18.dp))
+        Row(
+            modifier = modifier
+                .fillMaxWidth()
+                .padding(end = 12.dp, start = 12.dp),
+            horizontalArrangement = Arrangement.SpaceAround,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            BoxItems(modifier.clickable{
+      onGoogleClick()
+            }, R.drawable.ic_google, text = "Google")
+
+        }
+        Spacer(modifier = modifier.height(18.dp))
+        LoginViewAuth(
+            modifier = modifier,
+            onClick = {
+               goToSignUp()
+            },
+            text = "Login"
+        )
+
+    }
+}
+
+@Composable
 fun SignUpTextFields(
     modifier: Modifier,
     email: String,
     password: String,
     fullName: String,
     phoneNumber: String,
-    passwordState: VisualTransformation,
     passWordVisible: Boolean,
     viewModel: LoginViewModel
 ) {
 
-    OutlinedTextField(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(end = 12.dp, start = 12.dp),
-        colors = OutlinedTextFieldDefaults.colors(
-            focusedTextColor = Color.White,
-            unfocusedTextColor = Color.White,
-            focusedBorderColor = colorResource(R.color.orange),
-        ),
+    EditableView(
+        modifier = modifier,
         value = fullName,
+        hint = "Full Name",
         onValueChange = {
             viewModel.handleIntents(LoginEvents.UpdateFullName(it))
-        },
-        label = {
-            Text(
-                text = "Full Name"
-            )
         }
-
     )
 
     Spacer(modifier = modifier.height(18.dp))
 
-
-    OutlinedTextField(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(end = 12.dp, start = 12.dp),
-        colors = OutlinedTextFieldDefaults.colors(
-            focusedTextColor = Color.White,
-            unfocusedTextColor = Color.White,
-            focusedBorderColor = colorResource(R.color.orange),
-        ),
+    EditableView(
+        modifier = modifier,
         value = phoneNumber,
+        hint = "Phone Number",
         onValueChange = {
             viewModel.handleIntents(LoginEvents.UpdatePhoneNumber(it))
-        },
-        label = {
-            Text(
-                text = "Phone Number"
-            )
         }
-
     )
 
     Spacer(modifier = modifier.height(18.dp))
 
-
-
-    OutlinedTextField(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(end = 12.dp, start = 12.dp),
-        colors = OutlinedTextFieldDefaults.colors(
-            focusedTextColor = Color.White,
-            unfocusedTextColor = Color.White,
-            focusedBorderColor = colorResource(R.color.orange),
-        ),
+    EditableView(
+        modifier = modifier,
         value = email,
+        hint = "Email",
         onValueChange = {
             viewModel.handleIntents(LoginEvents.SignUpUpdateEmail(it))
-        },
-        label = {
-            Text(
-                text = "Email"
-            )
         }
-
     )
 
     Spacer(modifier = modifier.height(18.dp))
 
-    OutlinedTextField(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(end = 12.dp, start = 12.dp),
-        visualTransformation = passwordState,
-        keyboardOptions = KeyboardOptions(
-            keyboardType = KeyboardType.Password,
-            imeAction = ImeAction.Done
-        ),
-        colors = OutlinedTextFieldDefaults.colors(
-            focusedTextColor = Color.White,
-            unfocusedTextColor = Color.White,
-            focusedBorderColor = colorResource(R.color.orange),
-        ),
+    EditableView(
+        modifier = modifier,
         value = password,
+        hint = "Password",
         onValueChange = {
             viewModel.handleIntents(LoginEvents.SignUpUpdatePassword(it))
         },
-        label = {
-            Text(
-                text = "Password"
-            )
-        },
-        trailingIcon = {
-            IconButton(onClick = {
-                viewModel.handleIntents(LoginEvents.SignUpPasswordVisible)
-            }) {
-                if (passWordVisible) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.eye_show_svgrepo_com),
-                        contentDescription = null,
-                        modifier = modifier.height(20.dp)
-                    )
-                } else {
-                    Icon(
-                        painter = painterResource(id = R.drawable.eye_off_svgrepo_com),
-                        contentDescription = null,
-                        modifier = modifier.height(20.dp)
-                    )
-                }
-            }
+        passWordVisible = passWordVisible,
+        isPasswordField = true,
+        togglePasswordVisibility = {
+            viewModel.handleIntents(LoginEvents.SignUpPasswordVisible)
         }
     )
 }
-
-@Composable
-fun LoginView(modifier: Modifier, navController: NavHostController) {
-
-    Row(
-        modifier = modifier.clickable{
-            navController.navigate(Routes.Login)
-        }
-    ) {
-        Text(text = "Don't have an account?",
-            color = Color.Gray,
-            modifier = modifier.padding(5.dp)
-        )
-        Text(text = "Login",
-            color = colorResource(R.color.orange),
-            modifier = modifier.padding(5.dp)
-        )
-    }
-}
-
-
-//@Preview
-//@Composable
-//fun LoginUserScreenPreview() {
-//    ScreenLoginDesign( navController = NavHostController(LocalContext.current))
-//}

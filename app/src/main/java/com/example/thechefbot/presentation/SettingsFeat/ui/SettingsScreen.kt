@@ -29,12 +29,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
+import com.example.thechefbot.R
 import com.example.thechefbot.navigation.Routes
 import com.example.thechefbot.presentation.AuthFeat.events.LoginEvents
 import com.example.thechefbot.presentation.AuthFeat.model.LoginViewModel
@@ -104,7 +106,8 @@ fun SettingsScreen(modifier: Modifier = Modifier,navHostController: NavHostContr
                 Icon(
                     modifier = modifier.align(Alignment.CenterVertically),
                     imageVector =  Icons.Default.Logout,
-                    contentDescription = null
+                    contentDescription = null,
+                    tint = colorResource(R.color.orange)
                 )
 
                 Spacer(modifier = modifier.width(6.dp))
@@ -116,7 +119,8 @@ fun SettingsScreen(modifier: Modifier = Modifier,navHostController: NavHostContr
                 Icon(
                     modifier = modifier.align(Alignment.CenterVertically),
                     imageVector = Icons.Default.ArrowForwardIos,
-                    contentDescription = null
+                    contentDescription = null,
+                    tint = colorResource(R.color.orange)
                 )
 
             }
@@ -160,7 +164,8 @@ fun SettingsItem(modifier: Modifier = Modifier,icon : ImageVector, title : Strin
         Icon(
             modifier = modifier.align(Alignment.CenterVertically),
             imageVector = icon,
-            contentDescription = null
+            contentDescription = null,
+            tint = colorResource(R.color.orange)
         )
 
         Spacer(modifier = modifier.width(6.dp))
@@ -172,7 +177,8 @@ fun SettingsItem(modifier: Modifier = Modifier,icon : ImageVector, title : Strin
         Icon(
             modifier = modifier.align(Alignment.CenterVertically),
             imageVector = Icons.Default.ArrowForwardIos,
-            contentDescription = null
+            contentDescription = null,
+            tint = colorResource(R.color.orange)
         )
 
     }

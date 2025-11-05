@@ -24,9 +24,11 @@ import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.example.thechefbot.R
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -37,7 +39,8 @@ fun TopBar(modifier: Modifier = Modifier, visibility : Boolean, text: String, on
             Text(
                 modifier = modifier.padding(5.dp),
                 text = text,
-                textAlign = TextAlign.Center
+                textAlign = TextAlign.Center,
+                color = colorResource(R.color.orange)
             )
         },
         navigationIcon = {

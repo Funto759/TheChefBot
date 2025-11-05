@@ -9,6 +9,7 @@ import com.google.firebase.firestore.ListenerRegistration
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import javax.inject.Inject
 
 
@@ -23,16 +24,16 @@ class SettingsViewModel (
    private val _profileUiState = MutableStateFlow(SettingsState())
     val profileUiState = _profileUiState.asStateFlow()
 
-    private val _fullName = MutableStateFlow("")
-    val fullName = _fullName.asStateFlow()
-
-    private val _bio = MutableStateFlow("---------")
-    val bio = _bio.asStateFlow()
-    private val _email = MutableStateFlow("")
-    val email = _email.asStateFlow()
-
-    private val _phone = MutableStateFlow("")
-    val phone = _phone.asStateFlow()
+//    private val _fullName = MutableStateFlow("")
+//    val fullName = _fullName.asStateFlow()
+//
+//    private val _bio = MutableStateFlow("---------")
+//    val bio = _bio.asStateFlow()
+//    private val _email = MutableStateFlow("")
+//    val email = _email.asStateFlow()
+//
+//    private val _phone = MutableStateFlow("")
+//    val phone = _phone.asStateFlow()
 
     private var listener: ListenerRegistration? = null
 
@@ -102,20 +103,37 @@ class SettingsViewModel (
     }
 
     fun updateFullName(name: String){
-        _fullName.value = name
+        _profileUiState.update {
+            it.copy(
+                fullName = name
+            )
+        }
     }
 
 
     fun updateBio(bio: String){
-        _bio.value = bio
+        _profileUiState.update {
+            it.copy(
+                bio = bio
+            )
+        }
     }
 
     fun updateEmail(email: String){
-        _email.value = email
+        _profileUiState.update {
+            it.copy(
+                email = email
+            )
+        }
+
     }
 
     fun updatePhone(phone: String){
-        _phone.value = phone
+        _profileUiState.update {
+            it.copy(
+                phone = phone
+            )
+        }
     }
 
     fun createOrMergeUser(extra: AppUser? = null, onDone: (Boolean, String?) -> Unit) {

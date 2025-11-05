@@ -130,7 +130,7 @@ fun ChefBotSplashScreen(onSplashComplete: () -> Unit) {
                     Spacer(modifier = Modifier.height(8.dp))
 
                     Text(
-                        text = "PanDaBot",
+                        text = "Panda Bot",
                         style = MaterialTheme.typography.displaySmall,
                         fontWeight = FontWeight.Bold,
                         color = colorResource(R.color.orange)

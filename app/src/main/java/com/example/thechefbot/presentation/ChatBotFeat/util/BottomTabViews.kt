@@ -66,7 +66,7 @@ fun ImagePickerMenu(
             },
             leadingIcon = {
                 Icon(Icons.Default.Cancel, contentDescription = "Localized description",
-                    modifier = modifier.padding(5.dp))
+                    modifier = modifier.padding(5.dp),tint = colorResource(R.color.orange))
             }
         )
         DropdownMenuItem(
@@ -77,7 +77,7 @@ fun ImagePickerMenu(
             },
             leadingIcon = {
                 Icon(Icons.Default.CameraAlt, contentDescription = "Localized description"
-                 ,modifier = modifier.padding(5.dp))
+                 ,modifier = modifier.padding(5.dp),tint = colorResource(R.color.orange))
             }
         )
         DropdownMenuItem(
@@ -88,7 +88,7 @@ fun ImagePickerMenu(
             },
             leadingIcon = {
                 Icon(Icons.Default.Image, contentDescription = "Localized description"
-                    ,modifier = modifier.padding(5.dp))
+                    ,modifier = modifier.padding(5.dp),tint = colorResource(R.color.orange))
             }
         )
     }
@@ -117,7 +117,7 @@ fun PromptInputField(
         shape = RoundedCornerShape(25.dp),
         colors = OutlinedTextFieldDefaults.colors(
             focusedTextColor = Color.Black,
-            focusedBorderColor = Color.Transparent,
+            focusedBorderColor = colorResource(R.color.orange),
             unfocusedBorderColor = Color.Transparent,
             focusedContainerColor = Color.LightGray,
             unfocusedContainerColor = Color.LightGray,

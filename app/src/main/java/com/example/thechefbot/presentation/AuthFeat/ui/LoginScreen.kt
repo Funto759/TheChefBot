@@ -62,6 +62,10 @@ import com.example.thechefbot.presentation.AuthFeat.events.LoginEvents
 import com.example.thechefbot.presentation.AuthFeat.model.LoginViewModel
 import com.example.thechefbot.presentation.AuthFeat.state.LoginState
 import com.example.thechefbot.presentation.AuthFeat.state.UserLoginState
+import com.example.thechefbot.presentation.AuthFeat.util.BoxItems
+import com.example.thechefbot.presentation.AuthFeat.util.EditableView
+import com.example.thechefbot.presentation.AuthFeat.util.LoginBoxes
+import com.example.thechefbot.presentation.AuthFeat.util.LoginViewAuth
 import dagger.hilt.android.internal.Contexts
 import org.koin.androidx.compose.koinViewModel
 
@@ -116,15 +120,6 @@ fun ScreenLogin(modifier: Modifier = Modifier,
                 loginAuthenticated : () -> Unit
 ) {
 
-
-//    when {
-//        authUiState.authenticated -> {
-//          loginAuthenticated()
-//        }
-//    }
-
-
-
     LoginView(
         modifier = modifier,
         paddingValues = paddingValues,
@@ -136,13 +131,7 @@ fun ScreenLogin(modifier: Modifier = Modifier,
         navHostController = navController,
         passWordVisible = loginUiState.passwordVisible
     )
-
-
-
-
-
     }
-
 
 
 @Composable
@@ -189,72 +178,30 @@ fun LoginView(modifier: Modifier = Modifier,
             } else {
                 PasswordVisualTransformation()
             }
-            OutlinedTextField(
-                modifier = modifier
-                    .fillMaxWidth()
-                    .padding(end = 12.dp, start = 12.dp),
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedTextColor = Color.White,
-                    unfocusedTextColor = Color.White,
-                    focusedBorderColor = colorResource(R.color.orange),
-                ),
-                value = email,
+
+            EditableView(
+                modifier = modifier,
+                value = authUiState.email,
+                hint = "Email",
                 onValueChange = {
                     viewModel.handleIntents(LoginEvents.UpdateEmail(it))
-                },
-                label = {
-                    Text(
-                        text = "Email"
-                    )
                 }
-
             )
 
             Spacer(modifier = modifier.height(18.dp))
 
-            OutlinedTextField(
-                modifier = modifier
-                    .fillMaxWidth()
-                    .padding(end = 12.dp, start = 12.dp),
-                visualTransformation = state,
-                keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Password,
-                    imeAction = ImeAction.Done
-                ),
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedTextColor = Color.White,
-                    unfocusedTextColor = Color.White,
-                    focusedBorderColor = colorResource(R.color.orange),
-                ),
-                value = password,
+            EditableView(
+                modifier = modifier,
+                value = authUiState.password,
+                hint = "Password",
                 onValueChange = {
                     viewModel.handleIntents(LoginEvents.UpdatePassword(it))
                 },
-                label = {
-                    Text(
-                        text = "Password"
-                    )
-                },
-                trailingIcon = {
-                    IconButton(onClick = {
-                        viewModel.handleIntents(LoginEvents.PasswordVisible)
-                    }) {
-                        if (passWordVisible) {
-                            Icon(
-                                painter = painterResource(id = R.drawable.eye_show_svgrepo_com),
-                                contentDescription = null,
-                                modifier = modifier.height(20.dp)
-                            )
-                        } else {
-                            Icon(
-                                painter = painterResource(id = R.drawable.eye_off_svgrepo_com),
-                                contentDescription = null,
-                                modifier = modifier.height(20.dp)
-                            )
-                        }
-                    }
+                passWordVisible = passWordVisible,
+                isPasswordField = true,
+                togglePasswordVisibility = {
+                    viewModel.handleIntents(LoginEvents.PasswordVisible)
                 }
-
             )
 
             Spacer(modifier = modifier.height(8.dp))
@@ -294,9 +241,6 @@ fun LoginView(modifier: Modifier = Modifier,
             Spacer(modifier = modifier.height(18.dp))
             LoginBoxes(
                 modifier = modifier,
-                viewModel = viewModel,
-                credentialManager = credentialManager,
-                context = context,
                 onGoogle = {
                     viewModel.handleIntents(
                         LoginEvents.GoogleSignIn(
@@ -308,7 +252,12 @@ fun LoginView(modifier: Modifier = Modifier,
                 }
             )
             Spacer(modifier = modifier.height(18.dp))
-            SignUpView(modifier = modifier, navController = navHostController)
+            LoginViewAuth(
+                modifier = modifier
+                , text = "Sign Up"
+                , onClick = {
+                    navHostController.navigate(Routes.SignUp)
+                })
 
 
         }
@@ -323,83 +272,6 @@ fun LoginView(modifier: Modifier = Modifier,
 }
 
 
-@Composable
-fun LoginBoxes(modifier: Modifier, onGoogle: () -> Unit, viewModel: LoginViewModel, credentialManager: CredentialManager,context : Context) {
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(end = 12.dp, start = 12.dp),
-        horizontalArrangement = Arrangement.SpaceAround,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        BoxItems(modifier.clickable {
-          onGoogle()
-        }, R.drawable.ic_google, text = "Google")
-
-    }
-}
-
-@Composable
-fun BoxItems(modifier: Modifier = Modifier, image : Int, text : String ) {
-
-    Box(
-        contentAlignment = Alignment.Center,
-        modifier = modifier
-            .height(50.dp)
-            .width(150.dp)
-            .background(
-                color = Color.LightGray,
-                shape = RoundedCornerShape(10.dp)
-            )
-    ) {
-
-        Row(modifier = modifier,
-            horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.CenterVertically) {
-            Icon(
-                painter = painterResource(id = image),
-                contentDescription = null,
-                modifier = modifier
-                    .size(50.dp)
-                    .padding(end = 15.dp),
-                tint = Color.Unspecified
-            )
 
 
-            Text(
-                text = text,
-                textAlign = TextAlign.Start,
-                modifier = modifier,
-                color = colorResource(R.color.black)
-            )
-        }
 
-    }
-}
-
-
-@Composable
-fun SignUpView(modifier: Modifier,navController: NavHostController) {
-
-    Row(
-        modifier = modifier.clickable{
-            navController.navigate(Routes.SignUp)
-        }
-    ) {
-        Text(text = "Don't have an account?",
-            color = Color.Gray,
-            modifier = modifier.padding(5.dp)
-        )
-        Text(text = "Sign Up",
-            color = colorResource(R.color.orange),
-            modifier = modifier.padding(5.dp)
-        )
-    }
-}
-
-
-//@Preview
-//@Composable
-//fun LoginUserScreenPreview() {
-//    ScreenLoginDesign( navController = NavHostController(LocalContext.current))
-//}

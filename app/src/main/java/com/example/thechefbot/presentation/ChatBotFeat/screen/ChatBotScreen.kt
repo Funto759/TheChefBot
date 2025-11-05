@@ -19,6 +19,7 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberCoroutineScope
@@ -44,6 +45,7 @@ import com.example.thechefbot.presentation.ChatBotFeat.model.RecipeViewModel
 import com.example.thechefbot.presentation.ChatBotFeat.model.data.ChatMessage
 import com.example.thechefbot.presentation.ChatBotFeat.model.data.ChatSession
 import com.example.thechefbot.presentation.ChatBotFeat.model.state.ChefUiState
+import com.example.thechefbot.presentation.SettingsFeat.model.SettingsViewModel
 import com.example.thechefbot.util.launchCamera
 import com.example.thechefbot.util.launchPhotoPicker
 import com.example.thechefbot.util.saveImageToInternalStorage
@@ -65,8 +67,8 @@ fun ChatBotScreen(modifier: Modifier = Modifier, navHostController: NavHostContr
     val context = LocalContext.current
     var cameraUri by rememberSaveable { mutableStateOf<Uri?>(Uri.EMPTY) }
     val keyboardController = LocalSoftwareKeyboardController.current
-    var expanded by rememberSaveable { mutableStateOf(false) }
-    var settingsToggleExpanded by rememberSaveable { mutableStateOf(false) }
+    val settingsViewModel = koinViewModel <SettingsViewModel>()
+    val profileUiState by settingsViewModel.profileUiState.collectAsState()
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
 
@@ -102,10 +104,14 @@ fun ChatBotScreen(modifier: Modifier = Modifier, navHostController: NavHostContr
 
         ModalDrawerView(
             modifier = Modifier,
+            email = profileUiState.email,
             scope = scope,
             drawerState = drawerState,
             viewModel = viewModel,
             allSessions = allSessions,
+            onSettingsClicked = {
+                navHostController.navigate(Routes.Profile)
+            },
             showDeleteDialog = {
                 viewModel.handleEvent(ChefScreenEvents.DeleteAllSessions)
 //                viewModel.handleEvent(ChefScreenEvents.UpdateShowDialogStatus(true,null))
@@ -194,9 +200,11 @@ fun ChatBotScreen(modifier: Modifier = Modifier, navHostController: NavHostContr
 @Composable
 fun ModalDrawerView(modifier: Modifier = Modifier,
                     allSessions: List<ChatSession>,
+                    email : String,
                     activeSessionId: Int?,
                     context: Context,
                     showDeleteDialog: () -> Unit,
+                    onSettingsClicked: () -> Unit,
                     sessionToDelete: (Int?) -> Unit,
                     scope: CoroutineScope,
                     drawerState: DrawerState,
@@ -207,6 +215,7 @@ fun ModalDrawerView(modifier: Modifier = Modifier,
             ModalDrawerSheet {
                 DrawerContentView(
                     modifier = modifier,
+                    email = email,
                     context = context ,
                     expandDrawer = {
                         scope.launch {
@@ -218,6 +227,9 @@ fun ModalDrawerView(modifier: Modifier = Modifier,
                         }
                     },
                     showDeleteDialog = { showDeleteDialog() },
+                    onSettingsClicked = {
+                        onSettingsClicked()
+                    },
                     newChat = {
                         viewModel.createNewSession()
                         scope.launch { drawerState.close() }

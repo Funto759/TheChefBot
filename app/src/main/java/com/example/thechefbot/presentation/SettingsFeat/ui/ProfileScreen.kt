@@ -46,13 +46,6 @@ import org.koin.androidx.compose.koinViewModel
 fun ProfileScreen(modifier: Modifier = Modifier,paddingValues: PaddingValues,navHostController: NavHostController) {
 
     val viewModel = koinViewModel <SettingsViewModel>()
-
-    val context = LocalContext.current
-    val fullName by viewModel.fullName.collectAsState()
-    val bio by viewModel.bio.collectAsState()
-    val email by viewModel.email.collectAsState()
-    val phone by viewModel.phone.collectAsState()
-    val user by viewModel.user.collectAsState()
     val profileUiState by viewModel.profileUiState.collectAsState()
 
     when{
@@ -80,7 +73,8 @@ fun ProfileScreen(modifier: Modifier = Modifier,paddingValues: PaddingValues,nav
                 Text(
                     modifier = modifier.padding(5.dp),
                     text = "Profile",
-                    textAlign = TextAlign.Center
+                    textAlign = TextAlign.Center,
+                    color = colorResource(R.color.orange)
                 )
             },
             navigationIcon = {
@@ -116,7 +110,7 @@ fun ProfileScreen(modifier: Modifier = Modifier,paddingValues: PaddingValues,nav
 
         Spacer(modifier = modifier.height(22.dp))
 
-                ProfileFields(text = "Full Name", viewModel = viewModel,value = fullName) {
+                ProfileFields(text = "Full Name", viewModel = viewModel,value = profileUiState.fullName) {
                     when{
                         profileUiState.isEditable -> {
                             viewModel.handleIntents(SettingEvents.UpdateFullName(it))
@@ -125,14 +119,14 @@ fun ProfileScreen(modifier: Modifier = Modifier,paddingValues: PaddingValues,nav
 
                 }
 
-        ProfileFields(text = "Phone Number", viewModel = viewModel,value = phone) {
+        ProfileFields(text = "Phone Number", viewModel = viewModel,value = profileUiState.phone) {
                    when{
                        profileUiState.isEditable -> {
                            viewModel.handleIntents(SettingEvents.UpdatePhoneNumber(it))
                        }
                    }
                 }
-                ProfileFields(text = "Email", viewModel = viewModel,value = email ?: "") {
+                ProfileFields(text = "Email", viewModel = viewModel,value = profileUiState.email ?: "") {
                     when{
                         profileUiState.isEditable -> {
                             viewModel.handleIntents(SettingEvents.UpdateEmail(it))
@@ -140,7 +134,7 @@ fun ProfileScreen(modifier: Modifier = Modifier,paddingValues: PaddingValues,nav
                     }
                 }
 
-                ProfileFields(text = "Bio", viewModel = viewModel,value = bio ?: "---------") {
+                ProfileFields(text = "Bio", viewModel = viewModel,value = profileUiState.bio ?: "---------") {
                    when{
                        profileUiState.isEditable -> {
                            viewModel.handleIntents(SettingEvents.UpdateBio(it))
@@ -163,11 +157,11 @@ fun ProfileScreen(modifier: Modifier = Modifier,paddingValues: PaddingValues,nav
                     onClick = {
                     viewModel.handleIntents(SettingEvents.UpdateUser(
                         user = AppUser(
-                            full_name = fullName,
-                            phone_number = phone,
-                            bio = bio,
+                            full_name = profileUiState.fullName,
+                            phone_number = profileUiState.phone,
+                            bio = profileUiState.bio,
                             photoUrl = "",
-                            email = email
+                            email = profileUiState.email
                         )
                     ))
                 }) {
@@ -203,7 +197,11 @@ fun onBackPressed(profileUiState: SettingsState, navHostController: NavHostContr
 
 
 @Composable
-fun ProfileFields(modifier: Modifier = Modifier,text: String, viewModel: SettingsViewModel,value:String,onValueChange: (String) -> Unit) {
+fun ProfileFields(modifier: Modifier = Modifier
+                  ,text: String
+                  , viewModel: SettingsViewModel
+                  ,value:String
+                  ,onValueChange: (String) -> Unit) {
     OutlinedTextField(
         modifier = modifier
             .fillMaxWidth()
