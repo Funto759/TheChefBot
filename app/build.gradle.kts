@@ -5,7 +5,7 @@ plugins {
     id ("kotlin-kapt")
     id ("dagger.hilt.android.plugin")
     id ("org.jetbrains.kotlin.plugin.serialization")
-//    alias(libs.plugins.google.gms.google.services)
+    alias(libs.plugins.google.gms.google.services)
 }
 
 android {
@@ -141,11 +141,11 @@ dependencies {
 
     implementation("io.coil-kt:coil-compose:2.7.0")
 
-//    implementation("com.facebook.android:facebook-android-sdk:16.3.0")
-//    implementation("com.google.android.gms:play-services-auth:21.1.1")
-//
-//
-//    implementation("com.google.gms:google-services:4.4.2")
+    implementation("com.facebook.android:facebook-android-sdk:16.3.0")
+    implementation("com.google.android.gms:play-services-auth:21.1.1")
+
+
+    implementation("com.google.gms:google-services:4.4.2")
 
     implementation("io.insert-koin:koin-android:4.0.2")
     implementation("io.insert-koin:koin-androidx-compose:4.0.2")
