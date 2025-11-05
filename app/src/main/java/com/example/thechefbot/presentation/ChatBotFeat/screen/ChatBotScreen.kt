@@ -30,7 +30,8 @@ import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.SoftwareKeyboardController
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
-import com.example.thechefbot.navigation.data.Routes
+import com.example.thechefbot.navigation.Routes
+
 import com.example.thechefbot.presentation.ChatBotFeat.util.DrawerContentView
 import com.example.thechefbot.presentation.ChatBotFeat.util.ImagePickerMenu
 import com.example.thechefbot.presentation.ChatBotFeat.util.InitialConversationScreen

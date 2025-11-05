@@ -57,7 +57,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import com.example.thechefbot.R
 import com.example.thechefbot.navigation.NavRoute
-import com.example.thechefbot.navigation.data.Routes
+import com.example.thechefbot.navigation.Routes
 import com.example.thechefbot.presentation.AuthFeat.events.LoginEvents
 import com.example.thechefbot.presentation.AuthFeat.model.LoginViewModel
 import org.koin.androidx.compose.koinViewModel

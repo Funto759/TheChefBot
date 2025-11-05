@@ -42,7 +42,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
-import com.example.thechefbot.navigation.data.Routes
+import com.example.thechefbot.navigation.Routes
+
 import okhttp3.Route
 
 @Composable

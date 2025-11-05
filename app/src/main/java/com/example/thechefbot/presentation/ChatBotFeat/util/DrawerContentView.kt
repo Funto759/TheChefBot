@@ -125,7 +125,8 @@ fun DrawerContentView(
                 modifier = modifier
                     .padding(16.dp)
                     .align(Alignment.CenterHorizontally),
-                style = MaterialTheme.typography.titleMedium
+                style = MaterialTheme.typography.titleMedium,
+                color = colorResource(R.color.orange)
             )
 
             // LIST OF ALL SESSIONS
