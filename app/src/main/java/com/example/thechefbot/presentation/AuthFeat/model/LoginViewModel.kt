@@ -42,26 +42,7 @@ class LoginViewModel (
 
     private val _loginUiState = MutableStateFlow(LoginState())
     val loginUiState = _loginUiState.asStateFlow()
-    private val _email = MutableStateFlow("")
-    val email = _email.asStateFlow()
 
-    private val _password = MutableStateFlow("")
-    val password = _password.asStateFlow()
-
-    private val _signUp_email = MutableStateFlow("")
-    val signUp_email = _signUp_email.asStateFlow()
-
-
-    private val _signUp_password = MutableStateFlow("")
-    val signUp_password = _signUp_password.asStateFlow()
-
-
-    private val _signUp_fullName = MutableStateFlow("")
-    val signUp_fullName = _signUp_fullName.asStateFlow()
-
-
-    private val _signUp_phone_number = MutableStateFlow("")
-    val signUp_phone_number = _signUp_phone_number.asStateFlow()
 
     init {
         handleIntents(LoginEvents.GetAuthStatus)
@@ -89,7 +70,7 @@ class LoginViewModel (
     private fun launchCredentialManager(credentialManager: CredentialManager,context: Context,fromSignUp: Boolean = false) {
         viewModelScope.launch {
             if (fromSignUp) {
-                if (_signUp_fullName.value.isNotEmpty() && _signUp_phone_number.value.isNotEmpty()) {
+                if (_authStatus.value.signUpFullName.isNotEmpty() && _authStatus.value.signUpPhoneNumber.isNotEmpty()) {
                     println("Launching Credential Manager")
                 } else {
                     _loginUiState.value = _loginUiState.value.copy(
@@ -100,7 +81,8 @@ class LoginViewModel (
                     return@launch
                 }
             }
-            val webClientId = context.getString(R.string.default_web_client_id)
+//            val webClientId = context.getString(R.string.default_web_client_id)
+            val webClientId = "context.getString(R.string.default_web_client_id)"
 
             // [START create_credential_manager_request]
             // Instantiate a Google sign-in request
@@ -164,8 +146,8 @@ class LoginViewModel (
                 if (fromSignUp){
                     handleIntents(LoginEvents.UpdateUser(
                         user = AppUser(
-                            full_name = _signUp_fullName.value,
-                            phone_number = _signUp_phone_number.value,
+                            full_name = _authStatus.value.signUpFullName,
+                            phone_number = _authStatus.value.signUpPhoneNumber,
                             bio = "",
                             photoUrl = "",
                         )
@@ -182,27 +164,51 @@ class LoginViewModel (
 
 
     fun onEmailChange(newEmail: String) {
-        _email.value = newEmail
+        _authStatus.update {
+            it.copy(
+                email = newEmail
+            )
+        }
     }
     fun onSignUpEmailChange(newEmail: String) {
-        _signUp_email.value = newEmail
+        _authStatus.update {
+            it.copy(
+                signUpEmail = newEmail
+            )
+        }
     }
 
 
     fun onPasswordChange(newPassword: String) {
-        _password.value = newPassword
+        _authStatus.update {
+            it.copy(
+                password = newPassword
+            )
+        }
     }
 
     fun onSignUpPasswordChange(newPassword: String) {
-        _signUp_password.value = newPassword
+        _authStatus.update {
+            it.copy(
+                signUpPassword = newPassword
+            )
+        }
     }
 
     fun onSignUpFullNameChange(newFullName: String) {
-        _signUp_fullName.value = newFullName
+        _authStatus.update {
+            it.copy(
+                signUpFullName = newFullName
+            )
+        }
     }
 
     fun onSignUpPhoneNumberChange(newPhoneNumber: String) {
-        _signUp_phone_number.value = newPhoneNumber
+        _authStatus.update {
+            it.copy(
+                signUpPhoneNumber = newPhoneNumber
+            )
+        }
     }
 
     fun loginUserConfirmation(email: String, password: String){
@@ -214,11 +220,11 @@ class LoginViewModel (
         }
     }
 
-    fun signUpUserConfirmation(email: String, password: String,fromSignUp: Boolean = false){
-        if (email.isNotEmpty() && password.isNotEmpty() && _signUp_fullName.value.isNotEmpty() && _signUp_phone_number.value.isNotEmpty()){
-          signUpUser(email,password)
+    fun signUpUserConfirmation(){
+        if (_authStatus.value.email.isNotEmpty() && _authStatus.value.password.isNotEmpty() && _authStatus.value.signUpFullName.isNotEmpty() && _authStatus.value.signUpPhoneNumber.isNotEmpty()){
+          signUpUser(_authStatus.value.email,_authStatus.value.password)
         }
-        else if (password.length <= 8){
+        else if (_authStatus.value.password.length <= 8){
             _loginUiState.value = _loginUiState.value.copy(signUpSuccess = false, signUpErrorStatus = true, signUpErrorMessage = "Password must be at least 8 characters")
         } else{
             _loginUiState.value = _loginUiState.value.copy(signUpSuccess = false, signUpErrorStatus = true, signUpErrorMessage = "Email, Full name, Phone number and Password cannot be empty")
@@ -295,8 +301,8 @@ class LoginViewModel (
                         println("User created successfully")
                        handleIntents(LoginEvents.UpdateUser(
                            user = AppUser(
-                               full_name = _signUp_fullName.value,
-                               phone_number = _signUp_phone_number.value,
+                               full_name = _authStatus.value.signUpFullName,
+                               phone_number = _authStatus.value.signUpPhoneNumber,
                                email = email,
                                bio = "",
                                photoUrl = "",
@@ -329,6 +335,17 @@ class LoginViewModel (
         }
     }
 
+    fun togglePasswordVisibility(){
+        _loginUiState.update {
+            it.copy(signUpPasswordVisible = !it.signUpPasswordVisible, success = false, signUpErrorStatus = false )
+        }
+    }
+    fun toggleSignUpPasswordVisibility(){
+        _loginUiState.update {
+            it.copy(passwordVisible = !it.passwordVisible, signUpSuccess = false, signUpErrorStatus = false )
+        }
+    }
+
 
     fun handleIntents(events : LoginEvents){
         when(events){
@@ -340,12 +357,12 @@ class LoginViewModel (
             is LoginEvents.UpdatePassword -> onPasswordChange(events.password)
             is LoginEvents.UpdateFullName -> onSignUpFullNameChange(events.fullName)
             is LoginEvents.UpdatePhoneNumber -> onSignUpPhoneNumberChange(events.phoneNumber)
-            is LoginEvents.PasswordVisible -> _loginUiState.value = _loginUiState.value.copy(passwordVisible = events.status, success = false,errorStatus = false,errorMessage = null)
+            is LoginEvents.PasswordVisible -> togglePasswordVisibility()
             LoginEvents.NavigateToLoginScreen -> _loginUiState.value = _loginUiState.value.copy(navigateToLoginScreen = true)
-            is LoginEvents.SignUpPasswordVisible -> _loginUiState.value = _loginUiState.value.copy(signUpPasswordVisible = events.status, signUpSuccess = false, signUpErrorStatus = false )
+            is LoginEvents.SignUpPasswordVisible -> toggleSignUpPasswordVisibility()
             is LoginEvents.SignUpUpdateEmail -> onSignUpEmailChange(events.email)
             is LoginEvents.SignUpUpdatePassword -> onSignUpPasswordChange(events.password)
-            is LoginEvents.SignUpUser -> signUpUserConfirmation(events.email,events.password)
+            is LoginEvents.SignUpUser -> signUpUserConfirmation()
             LoginEvents.GetAuthStatus -> getAuthStatus()
             is LoginEvents.SignOut -> signOut(events.context)
             LoginEvents.ResetErrorStatus -> _loginUiState.value = _loginUiState.value.copy(errorStatus = false, errorMessage = null)

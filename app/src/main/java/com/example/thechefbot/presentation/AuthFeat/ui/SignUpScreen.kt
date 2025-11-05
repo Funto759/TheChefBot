@@ -75,7 +75,6 @@ fun SignUpUserScreen(modifier: Modifier = Modifier, navController: NavHostContro
 
 @Composable
 fun SignUpLogin(modifier: Modifier = Modifier,
-//                viewModel: LoginViewModel,
                 navController: NavHostController,
                 paddingValues: PaddingValues
 ) {
@@ -84,15 +83,8 @@ fun SignUpLogin(modifier: Modifier = Modifier,
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val credentialManager = remember { CredentialManager.create(context) }
-    val email by viewModel.signUp_email.collectAsState()
-    val password by viewModel.signUp_password.collectAsState()
-    val fullName by viewModel.signUp_fullName.collectAsState()
-    val phoneNumber by viewModel.signUp_phone_number.collectAsState()
     val loginUiState by viewModel.loginUiState.collectAsStateWithLifecycle()
     val authUiState by viewModel.authStatus.collectAsStateWithLifecycle()
-
-    var passWordVisible by rememberSaveable { mutableStateOf(false) }
-
 
     when{
         loginUiState.navigateToHomeScreen -> {
@@ -108,15 +100,6 @@ fun SignUpLogin(modifier: Modifier = Modifier,
         loginUiState.signUpErrorStatus -> {
             Toast.makeText(LocalContext.current, loginUiState.signUpErrorMessage, Toast.LENGTH_SHORT).show()
             viewModel.handleIntents(LoginEvents.ResetSignUpErrorStatus)
-        }
-//        loginUiState.signUpSuccess -> {
-//            viewModel.handleIntents(LoginEvents.NavigateToLoginScreen)
-//        }
-        loginUiState.signUpPasswordVisible -> {
-            passWordVisible = loginUiState.signUpPasswordVisible
-        }
-        !loginUiState.signUpPasswordVisible -> {
-            passWordVisible = loginUiState.signUpPasswordVisible
         }
 
     }
@@ -149,7 +132,7 @@ fun SignUpLogin(modifier: Modifier = Modifier,
 
             Spacer(modifier = modifier.height(26.dp))
 
-            val state = if (passWordVisible) {
+            val state = if (loginUiState.signUpPasswordVisible) {
                 VisualTransformation.None
             } else {
                 PasswordVisualTransformation()
@@ -158,13 +141,13 @@ fun SignUpLogin(modifier: Modifier = Modifier,
 
             SignUpTextFields(
                 modifier = modifier,
-                email = email,
-                password = password,
+                email = authUiState.signUpEmail,
+                password = authUiState.signUpPassword,
                 passwordState = state,
-                passWordVisible = passWordVisible,
+                passWordVisible = loginUiState.signUpPasswordVisible,
                 viewModel = viewModel,
-                fullName = fullName,
-                phoneNumber = phoneNumber
+                fullName = authUiState.signUpFullName,
+                phoneNumber = authUiState.signUpPhoneNumber
             )
 
 
@@ -173,7 +156,7 @@ fun SignUpLogin(modifier: Modifier = Modifier,
             Button(
                 shape = Shapes().large,
                 onClick = {
-                    viewModel.handleIntents(LoginEvents.SignUpUser(email, password))
+                    viewModel.handleIntents(LoginEvents.SignUpUser)
                 },
                 modifier = modifier
                     .fillMaxWidth()
@@ -328,7 +311,7 @@ fun SignUpTextFields(
         },
         trailingIcon = {
             IconButton(onClick = {
-                viewModel.handleIntents(LoginEvents.SignUpPasswordVisible(!passWordVisible))
+                viewModel.handleIntents(LoginEvents.SignUpPasswordVisible)
             }) {
                 if (passWordVisible) {
                     Icon(

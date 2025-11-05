@@ -15,13 +15,13 @@ sealed interface LoginEvents{
 
     data object GetAuthStatus : LoginEvents
     data class LoginUser(val email :String, val password : String) : LoginEvents
-    data class SignUpUser(val email :String, val password : String) : LoginEvents
+    data object SignUpUser : LoginEvents
     data object NavigateToHomeScreen : LoginEvents
     data object NavigateToLoginScreen : LoginEvents
     data object NavigateToRegisterScreen : LoginEvents
 
-    data class PasswordVisible(val status : Boolean): LoginEvents
-    data class SignUpPasswordVisible(val status : Boolean): LoginEvents
+    data object PasswordVisible: LoginEvents
+    data object SignUpPasswordVisible: LoginEvents
     data object NavigateToForgotPasswordScreen : LoginEvents
     data class UpdatePassword(val password : String) : LoginEvents
     data class UpdateFullName(val fullName : String) : LoginEvents

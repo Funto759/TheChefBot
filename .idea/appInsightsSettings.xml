@@ -8,10 +8,10 @@
             <InsightsFilterSettings>
               <option name="connection">
                 <ConnectionSetting>
-                  <option name="appId" value="PLACEHOLDER" />
-                  <option name="mobileSdkAppId" value="" />
-                  <option name="projectId" value="" />
-                  <option name="projectNumber" value="" />
+                  <option name="appId" value="com.example.thechefbot" />
+                  <option name="mobileSdkAppId" value="1:143493035715:android:6e791541fb8e637c2d9476" />
+                  <option name="projectId" value="newsdeluxe-6324a" />
+                  <option name="projectNumber" value="143493035715" />
                 </ConnectionSetting>
               </option>
               <option name="signal" value="SIGNAL_UNSPECIFIED" />

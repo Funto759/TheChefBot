@@ -60,6 +60,7 @@ import com.example.thechefbot.R
 import com.example.thechefbot.navigation.Routes
 import com.example.thechefbot.presentation.AuthFeat.events.LoginEvents
 import com.example.thechefbot.presentation.AuthFeat.model.LoginViewModel
+import com.example.thechefbot.presentation.AuthFeat.state.LoginState
 import com.example.thechefbot.presentation.AuthFeat.state.UserLoginState
 import dagger.hilt.android.internal.Contexts
 import org.koin.androidx.compose.koinViewModel
@@ -67,38 +68,12 @@ import org.koin.androidx.compose.koinViewModel
 @Composable
 fun LoginUserScreen(modifier: Modifier = Modifier, navController: NavHostController, paddingValues: PaddingValues) {
 
-    ScreenLogin(
-//        viewModel = viewModel,
-        navController = navController,
-        paddingValues = paddingValues
-    )
-}
-
-
-@Composable
-fun ScreenLogin(modifier: Modifier = Modifier,
-                navController: NavHostController,
-                paddingValues: PaddingValues
-) {
     val context = LocalContext.current
-
     val viewModel = koinViewModel<LoginViewModel>()
-
-    val email by viewModel.email.collectAsState()
-    val password by viewModel.password.collectAsState()
     val loginUiState by viewModel.loginUiState.collectAsStateWithLifecycle()
     val authUiState by viewModel.authStatus.collectAsStateWithLifecycle()
-    var passWordVisible by rememberSaveable { mutableStateOf(false) }
-
-
-    when {
-        authUiState.authenticated -> {
-           viewModel.handleIntents(LoginEvents.NavigateToHomeScreen)
-        }
-    }
 
     when{
-
         loginUiState.navigateToHomeScreen -> {
             navController.navigate(Routes.Tabs){
                 popUpTo(Routes.SignUp) {
@@ -110,26 +85,56 @@ fun ScreenLogin(modifier: Modifier = Modifier,
             Toast.makeText(LocalContext.current, loginUiState.errorMessage, Toast.LENGTH_SHORT).show()
             viewModel.handleIntents(LoginEvents.ResetErrorStatus)
         }
-        loginUiState.passwordVisible -> {
-            passWordVisible = loginUiState.passwordVisible
-        }
-        !loginUiState.passwordVisible -> {
-            passWordVisible = loginUiState.passwordVisible
-        }
+
 
 
     }
+
+    ScreenLogin(
+        context = context,
+        modifier = modifier,
+        viewModel = viewModel,
+        loginUiState = loginUiState,
+        authUiState = authUiState,
+        navController = navController,
+        paddingValues = paddingValues,
+        loginAuthenticated = {
+            viewModel.handleIntents(LoginEvents.NavigateToHomeScreen)
+        }
+    )
+}
+
+
+@Composable
+fun ScreenLogin(modifier: Modifier = Modifier,
+                navController: NavHostController,
+                paddingValues: PaddingValues,
+                context: Context,
+                viewModel: LoginViewModel,
+                loginUiState: LoginState,
+                authUiState: UserLoginState,
+                loginAuthenticated : () -> Unit
+) {
+
+
+//    when {
+//        authUiState.authenticated -> {
+//          loginAuthenticated()
+//        }
+//    }
+
+
 
     LoginView(
         modifier = modifier,
         paddingValues = paddingValues,
         viewModel = viewModel,
-        email = email,
-        password = password,
+        email = authUiState.email,
+        password = authUiState.password,
         authUiState = authUiState,
         context = context,
         navHostController = navController,
-        passWordVisible = passWordVisible
+        passWordVisible = loginUiState.passwordVisible
     )
 
 
@@ -232,7 +237,7 @@ fun LoginView(modifier: Modifier = Modifier,
                 },
                 trailingIcon = {
                     IconButton(onClick = {
-                        viewModel.handleIntents(LoginEvents.PasswordVisible(!passWordVisible))
+                        viewModel.handleIntents(LoginEvents.PasswordVisible)
                     }) {
                         if (passWordVisible) {
                             Icon(
