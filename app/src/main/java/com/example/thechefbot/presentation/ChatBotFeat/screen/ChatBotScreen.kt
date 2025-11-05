@@ -105,10 +105,12 @@ fun ChatBotScreen(modifier: Modifier = Modifier, navHostController: NavHostContr
             viewModel = viewModel,
             allSessions = allSessions,
             showDeleteDialog = {
-                viewModel.handleEvent(ChefScreenEvents.UpdateShowDialogStatus(true,null))
+                viewModel.handleEvent(ChefScreenEvents.DeleteAllSessions)
+//                viewModel.handleEvent(ChefScreenEvents.UpdateShowDialogStatus(true,null))
             },
             sessionToDelete = {
-                   viewModel.handleEvent(ChefScreenEvents.UpdateShowDialogStatus(true, it))
+                viewModel.handleEvent(ChefScreenEvents.DeleteSession(it))
+//                   viewModel.handleEvent(ChefScreenEvents.UpdateShowDialogStatus(true, it))
             },
             activeSessionId = chefUiState.activeSessionId,
             context = context,
@@ -135,6 +137,16 @@ fun ChatBotScreen(modifier: Modifier = Modifier, navHostController: NavHostContr
                     },
                     settingsToggleExpanded = {
                        viewModel.handleEvent(ChefScreenEvents.ToggleSettingsMenuExpanded)
+                    },
+                    onSettingsClicked = {
+
+                    },
+                    onDeleteClicked = {
+                        viewModel.handleEvent(ChefScreenEvents.DeleteSession(chefUiState.activeSessionId))
+//                        viewModel.handleEvent(ChefScreenEvents.UpdateShowDialogStatus(true,chefUiState.activeSessionId))
+                    },
+                    onToggleTheme = {
+
                     },
                     onClick = {
                         scope.launch {
@@ -236,6 +248,9 @@ fun MainScreen(modifier: Modifier = Modifier,
                launchCamera: () -> Unit = {},
                toggleExpanded: () -> Unit = {},
                settingsToggleExpanded: () -> Unit = {},
+               onSettingsClicked: () -> Unit,
+               onDeleteClicked : () -> Unit,
+               onToggleTheme :() -> Unit,
                onClick: () -> Unit,
                expanded: Boolean,
                settingsExpandedStatus: Boolean = false,
@@ -254,8 +269,14 @@ keyboardController: SoftwareKeyboardController?,
                 toggleExpanded = {
                     settingsToggleExpanded()
                 },
-                onCancelClicked = {
-//                    viewModel.handleEvent(ChefScreenEvents.ResetSessionToDelete)
+            onSettingsClicked = {
+                onSettingsClicked()
+            },
+                onDeleteClicked = {
+                    onDeleteClicked()
+                },
+                onToggleTheme = {
+                    onToggleTheme()
                 },
                 onClick = {
                     onClick()

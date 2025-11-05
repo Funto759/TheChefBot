@@ -415,6 +415,7 @@ class RecipeViewModel(
                 , sessionToDelete = sessionToDelete
             )
         }
+        println("${chefUiState.value.showDeleteDialog} : ${chefUiState.value.sessionToDelete}")
     }
 
 

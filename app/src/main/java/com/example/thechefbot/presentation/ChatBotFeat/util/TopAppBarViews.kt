@@ -31,7 +31,9 @@ fun TopChefBar(
                , scrollBehavior: TopAppBarScrollBehavior
     , onClick: () -> Unit
     ,expanded: Boolean,
-    onCancelClicked: () -> Unit,
+    onSettingsClicked: () -> Unit,
+    onDeleteClicked : () -> Unit,
+    onToggleTheme :() -> Unit,
     toggleExpanded: () -> Unit,
     text: String?) {
     CenterAlignedTopAppBar(
@@ -55,7 +57,7 @@ fun TopChefBar(
                 DropdownMenuItem(
                     text = { Text("Settings") },
                     onClick = {
-                        onCancelClicked()
+                        onSettingsClicked()
                     },
                     leadingIcon = {
                         Icon(
@@ -68,7 +70,7 @@ fun TopChefBar(
                 DropdownMenuItem(
                     text = { Text("Delete Chat") },
                     onClick = {
-                        toggleExpanded()
+                        onDeleteClicked()
 //                        launchCamera()
                     },
                     leadingIcon = {
@@ -79,8 +81,7 @@ fun TopChefBar(
                 DropdownMenuItem(
                     text = { Text("Toggle Mode") },
                     onClick = {
-                        toggleExpanded()
-//                        launchPhotoPicker()
+                        onToggleTheme()
                     },
                     leadingIcon = {
                         Icon(Icons.Default.InvertColors, contentDescription = "Localized description"
