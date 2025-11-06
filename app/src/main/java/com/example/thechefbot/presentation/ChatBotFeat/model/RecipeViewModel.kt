@@ -2,22 +2,28 @@ package com.example.thechefbot.presentation.ChatBotFeat.model
 
 import android.content.Context
 import android.net.Uri
+import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.thechefbot.presentation.ChatBotFeat.model.data.ChatMessage
 import com.example.thechefbot.presentation.ChatBotFeat.model.data.ChatSession
 import com.example.thechefbot.presentation.ChatBotFeat.model.events.ChefScreenEvents
 import com.example.thechefbot.presentation.ChatBotFeat.model.state.ChefUiState
+import com.example.thechefbot.presentation.SettingsFeat.events.SettingEvents
+import com.example.thechefbot.presentation.SettingsFeat.model.UserRepository
 import com.example.thechefbot.util.CommonUtil.getBitmapFromUri
 import com.google.ai.client.generativeai.GenerativeModel
 import com.google.ai.client.generativeai.type.content
+import com.google.firebase.firestore.ListenerRegistration
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -26,7 +32,8 @@ import kotlinx.serialization.MissingFieldException
 class RecipeViewModel(
     private val generativeModel: GenerativeModel,
     private val chatRepository: ChatRepository,
-    private val sessionPrefs: SessionPrefs
+    private val sessionPrefs: SessionPrefs,
+    private val repo: UserRepository
 ) : ViewModel() {
 
     private val _activeSessionId = MutableStateFlow<Int?>(null)
@@ -38,10 +45,20 @@ class RecipeViewModel(
     val chefUiState = _chefUiState.asStateFlow()
 
 
+
+
+    private var listener: ListenerRegistration? = null
+
+
     init {
+       connectListener()
         viewModelScope.launch {
             val newSessionId = sessionPrefs.getLastSessionId()
-            openSession(newSessionId)
+            if (newSessionId != null){
+                openSession(newSessionId)
+            }else {
+                createNewSession()
+            }
         }
     }
 
@@ -64,7 +81,11 @@ class RecipeViewModel(
 
     // expose all sessions for a "history list" screen
     val allSessions: StateFlow<List<ChatSession>> =
-        chatRepository.getAllSessions()
+        chefUiState
+            .flatMapLatest { email ->
+                if (email.userEmail.isEmpty()) flowOf(emptyList())
+                else chatRepository.getAllSessions(email.userEmail)
+            }
             .stateIn(
                 viewModelScope,
                 SharingStarted.WhileSubscribed(5000),
@@ -102,7 +123,8 @@ class RecipeViewModel(
     // NEW: Create a new chat session
     fun createNewSession(title : String? = null) {
         viewModelScope.launch {
-            val newSessionId = chatRepository.createNewSession(title = title)
+            val email = requireUserEmailOrReturn() ?: return@launch
+            val newSessionId = chatRepository.createNewSession(title = title, userEmail = _chefUiState.value.userEmail)
             openSession(newSessionId)
 
             // Clear UI state for fresh start
@@ -133,7 +155,7 @@ class RecipeViewModel(
     // NEW: Delete all sessions
     fun deleteAllSessions() {
         viewModelScope.launch {
-            chatRepository.deleteAllSessions()
+            chatRepository.deleteAllSessions(email = _chefUiState.value.userEmail)
             createNewSession() // Create a fresh session
         }
     }
@@ -198,10 +220,12 @@ class RecipeViewModel(
                 it.copy(loading = true)
             }
             try {
+                val email = requireUserEmailOrReturn() ?: return@launch
                 // 1. Make sure we have / create a session for this conversation
                 val ensuredSessionId = chatRepository.ensureSession(
                     existingSessionId = _chefUiState.value.activeSessionId,
-                    firstPromptForTitle = prompt
+                    firstPromptForTitle = prompt,
+                    userEmail = _chefUiState.value.userEmail
                 )
 
                 _activeSessionId.value = ensuredSessionId
@@ -227,15 +251,16 @@ class RecipeViewModel(
                     return@launch
                 }
                 if ((selectedSession.value?.title ?: null) == null){
-                    renameSession(sessionId, prompt)
+                    renameSession(ensuredSessionId, prompt)
                 }
 
                 // 3. Save prompt+answer to DB under this session
                 chatRepository.addMessageToSession(
-                    sessionId = sessionId,
+                    sessionId = ensuredSessionId,
                     prompt = prompt,
                     answer = outputContent,
-                    imageUri = null
+                    imageUri = null,
+                    userEmail = _chefUiState.value.userEmail
                 )
 
                 // 4. UI state cleanup: loading off, success true.
@@ -304,14 +329,17 @@ class RecipeViewModel(
 
             try {
 
+                val email = requireUserEmailOrReturn() ?: return@launch
+
                 // 1. Make / ensure session
                 val ensuredSessionId = chatRepository.ensureSession(
                     existingSessionId = _chefUiState.value.activeSessionId,
-                    firstPromptForTitle = prompt
+                    firstPromptForTitle = prompt,
+                    userEmail = _chefUiState.value.userEmail
                 )
                 _activeSessionId.value = ensuredSessionId
                 _chefUiState.update {
-                    it.copy(activeSessionId = ensuredSessionId)
+                    it.copy()
                 }
 
                 val recipe = generativeModel.generateContent(
@@ -334,12 +362,17 @@ class RecipeViewModel(
                     return@launch
                 }
 
+                if ((selectedSession.value?.title ?: null) == null){
+                    renameSession(ensuredSessionId, prompt)
+                }
+
                 // 3. Save prompt+answer to DB under this session
                 chatRepository.addMessageToSession(
-                    sessionId = sessionId,
+                    sessionId = ensuredSessionId,
                     prompt = prompt,
                     answer = outputContent,
-                    imageUri = imageUri.toString()
+                    imageUri = imageUri.toString(),
+                    userEmail = _chefUiState.value.userEmail
                 )
 
                 // 4. UI state cleanup: loading off, success true.
@@ -430,6 +463,33 @@ class RecipeViewModel(
             it.copy(settingsToggleExpanded = !it.settingsToggleExpanded)
         }
     }
+
+    fun connectListener(){
+        // start listening immediately if signed in
+        listener = repo.listenCurrentUser { user ->
+            println("User: $user")
+            updateUserEmail(user?.email.orEmpty())
+        }
+    }
+
+    fun updateUserEmail(email : String){
+        _chefUiState.update {
+            it.copy(
+                userEmail = email
+            )
+        }
+    }
+
+    private fun requireUserEmailOrReturn(): String? {
+        val email = _chefUiState.value.userEmail
+        if (email.isBlank()) {
+            _chefUiState.update { it.copy(errorState = true, error = "Not signed in.") }
+            return null
+        }
+        return email
+    }
+
+
 
     fun handleEvent(event: ChefScreenEvents) {
         when (event) {

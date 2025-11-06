@@ -14,7 +14,7 @@ sealed interface LoginEvents{
     data class GoogleSignIn(val credentialManager: CredentialManager, val context: Context, val fromSignUp: Boolean = false) : LoginEvents
 
     data object GetAuthStatus : LoginEvents
-    data class LoginUser(val email :String, val password : String) : LoginEvents
+    data object LoginUser : LoginEvents
     data object SignUpUser : LoginEvents
     data object NavigateToHomeScreen : LoginEvents
     data object NavigateToLoginScreen : LoginEvents
@@ -30,6 +30,9 @@ sealed interface LoginEvents{
     data class SignUpUpdatePassword(val password : String) : LoginEvents
     data class UpdateEmail(val email : String) : LoginEvents
     data class SignUpUpdateEmail(val email : String) : LoginEvents
+
+    data object DeleteLastSession : LoginEvents
+
 
     data class UpdateUser(
       val user : AppUser

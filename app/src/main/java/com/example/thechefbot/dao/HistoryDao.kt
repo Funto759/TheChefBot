@@ -19,8 +19,8 @@ interface ChatSessionDao {
     @Update
     suspend fun updateSession(session: ChatSession)
 
-    @Query("SELECT * FROM session_table ORDER BY lastUsedTimeStamp DESC")
-    fun getAllSessions(): Flow<List<ChatSession>>
+    @Query("SELECT * FROM session_table WHERE email = :email ORDER BY lastUsedTimeStamp DESC")
+    fun getAllSessions(email : String): Flow<List<ChatSession>>
 
     @Query("SELECT * FROM session_table WHERE sessionId = :id LIMIT 1")
     suspend fun getSessionById(id: Int): ChatSession?
@@ -28,8 +28,8 @@ interface ChatSessionDao {
     @Query("SELECT * FROM session_table WHERE sessionId = :id LIMIT 1")
     fun getSessionByIdFlow(id: Int): Flow<ChatSession?>
 
-    @Query("DELETE FROM session_table")
-    suspend fun deleteAllSessions()
+    @Query("DELETE FROM session_table WHERE email = :email")
+    suspend fun deleteAllSessions(email : String)
 
     @Delete
     suspend fun deleteSession(session: ChatSession)

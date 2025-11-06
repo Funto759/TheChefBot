@@ -35,6 +35,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import com.example.thechefbot.R
+import com.example.thechefbot.presentation.AuthFeat.util.EditableView
 import com.example.thechefbot.presentation.SettingsFeat.data.AppUser
 import com.example.thechefbot.presentation.SettingsFeat.events.SettingEvents
 import com.example.thechefbot.presentation.SettingsFeat.model.SettingsViewModel
@@ -110,37 +111,37 @@ fun ProfileScreen(modifier: Modifier = Modifier,paddingValues: PaddingValues,nav
 
         Spacer(modifier = modifier.height(22.dp))
 
-                ProfileFields(text = "Full Name", viewModel = viewModel,value = profileUiState.fullName) {
+        EditableView(hint = "Full Name",value = profileUiState.fullName, onValueChange =  {
                     when{
                         profileUiState.isEditable -> {
                             viewModel.handleIntents(SettingEvents.UpdateFullName(it))
                         }
                     }
 
-                }
+                })
 
-        ProfileFields(text = "Phone Number", viewModel = viewModel,value = profileUiState.phone) {
+        EditableView(hint = "Phone Number",value = profileUiState.phone, onValueChange =  {
                    when{
                        profileUiState.isEditable -> {
                            viewModel.handleIntents(SettingEvents.UpdatePhoneNumber(it))
                        }
                    }
-                }
-                ProfileFields(text = "Email", viewModel = viewModel,value = profileUiState.email ?: "") {
+                })
+        EditableView(hint  = "Email",value = profileUiState.email ?: "", onValueChange =  {
                     when{
                         profileUiState.isEditable -> {
                             viewModel.handleIntents(SettingEvents.UpdateEmail(it))
                         }
                     }
-                }
+                })
 
-                ProfileFields(text = "Bio", viewModel = viewModel,value = profileUiState.bio ?: "---------") {
+        EditableView(hint = "Bio",value = profileUiState.bio ?: "---------", onValueChange = {
                    when{
                        profileUiState.isEditable -> {
                            viewModel.handleIntents(SettingEvents.UpdateBio(it))
                        }
                    }
-                }
+                })
 
         Spacer(modifier = modifier.height(42.dp))
 
@@ -199,28 +200,15 @@ fun onBackPressed(profileUiState: SettingsState, navHostController: NavHostContr
 @Composable
 fun ProfileFields(modifier: Modifier = Modifier
                   ,text: String
-                  , viewModel: SettingsViewModel
                   ,value:String
                   ,onValueChange: (String) -> Unit) {
-    OutlinedTextField(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(end = 12.dp, start = 12.dp),
-        colors = OutlinedTextFieldDefaults.colors(
-            focusedTextColor = Color.White,
-            unfocusedTextColor = Color.White,
-            focusedBorderColor = colorResource(R.color.orange),
-        ),
+
+    EditableView(
+        modifier = modifier,
         value = value,
+        hint = text,
         onValueChange = {
             onValueChange(it)
-        },
-        label = {
-            Text(
-                text = text,
-                color = Color.White
-            )
         }
-
     )
 }

@@ -15,4 +15,6 @@ sealed interface SettingEvents {
     data class IsEditable (val isEditable : Boolean) : SettingEvents
 
     data class OnBackPressed(val onBackPressed : Boolean) : SettingEvents
+
+    data object DeleteLastSession : SettingEvents
 }

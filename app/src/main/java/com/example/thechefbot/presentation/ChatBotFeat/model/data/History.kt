@@ -14,7 +14,9 @@ data class ChatSession(
 
     // When this session was last active (epoch millis).
     // Useful for sorting sessions by "most recent".
-    val lastUsedTimeStamp: Long
+    val lastUsedTimeStamp: Long,
+
+    val email : String
 )
 
 @Entity(tableName = "message_table")
@@ -24,6 +26,9 @@ data class ChatMessage(
 
     // FK-like link to ChatSession.sessionId
     val sessionOwnerId: Int,
+
+    // user email
+    val email : String,
 
     // The question from the user
     val prompt: String,

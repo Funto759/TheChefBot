@@ -19,6 +19,6 @@ interface ChatDao {
     @Query("DELETE FROM message_table WHERE sessionOwnerId = :sessionId")
     suspend fun deleteMessagesForSession(sessionId: Int)
 
-    @Query("DELETE FROM message_table")
-    suspend fun deleteAllMessages()
+    @Query("DELETE FROM message_table WHERE email = :email")
+    suspend fun deleteAllMessages(email : String)
 }

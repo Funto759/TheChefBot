@@ -28,7 +28,7 @@ fun EditableView(
     value : String,
     onValueChange : (String) -> Unit,
     hint : String,
-    passWordVisible: Boolean = false,
+    passWordVisible: Boolean = true,
     isPasswordField : Boolean = false,
     togglePasswordVisibility : () -> Unit = {},
 ){
@@ -60,7 +60,7 @@ fun EditableView(
         colors = OutlinedTextFieldDefaults.colors(
             focusedTextColor = Color.White,
             unfocusedTextColor = Color.White,
-            focusedBorderColor = colorResource(R.color.orange),
+            focusedBorderColor = colorResource(R.color.pink),
         ),
         value = value,
         onValueChange = {
@@ -83,14 +83,14 @@ fun EditableView(
                                 painter = painterResource(id = R.drawable.eye_show_svgrepo_com),
                                 contentDescription = null,
                                 modifier = modifier.height(20.dp),
-                                tint = colorResource(R.color.orange)
+//                                tint = colorResource(R.color.orange)
                             )
                         } else {
                             Icon(
                                 painter = painterResource(id = R.drawable.eye_off_svgrepo_com),
                                 contentDescription = null,
                                 modifier = modifier.height(20.dp),
-                                tint = colorResource(R.color.orange)
+//                                tint = colorResource(R.color.orange)
                             )
                         }
                 }

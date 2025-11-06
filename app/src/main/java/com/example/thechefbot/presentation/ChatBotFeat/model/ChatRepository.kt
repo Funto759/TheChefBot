@@ -11,8 +11,8 @@ class ChatRepository(
     private val messageDao: ChatDao
 ) {
 
-    fun getAllSessions(): Flow<List<ChatSession>> =
-        sessionDao.getAllSessions()
+    fun getAllSessions(email : String): Flow<List<ChatSession>> =
+        sessionDao.getAllSessions(email)
 
     fun getSession(id : Int) : Flow<ChatSession?> = sessionDao.getSessionByIdFlow(id = id)
 
@@ -28,7 +28,8 @@ class ChatRepository(
      */
     suspend fun ensureSession(
         existingSessionId: Int?,
-        firstPromptForTitle: String
+        firstPromptForTitle: String,
+        userEmail: String
     ): Int {
         if (existingSessionId != null) {
             return existingSessionId
@@ -37,7 +38,8 @@ class ChatRepository(
         val now = System.currentTimeMillis()
         val newSession = ChatSession(
             title = generateTitleFromPrompt(firstPromptForTitle),
-            lastUsedTimeStamp = now
+            lastUsedTimeStamp = now,
+            email = userEmail
         )
         val newId = sessionDao.insertSession(newSession) // returns Long
         return newId.toInt()
@@ -51,7 +53,8 @@ class ChatRepository(
         sessionId: Int,
         prompt: String,
         answer: String,
-        imageUri: String? = null
+        imageUri: String? = null,
+        userEmail: String
     ) {
         val now = System.currentTimeMillis()
 
@@ -61,7 +64,8 @@ class ChatRepository(
             prompt = prompt,
             answer = answer,
             timestamp = now,
-            imageUri = imageUri
+            imageUri = imageUri,
+            email = userEmail
         )
         messageDao.insertMessage(message)
 
@@ -77,11 +81,12 @@ class ChatRepository(
     }
 
     // NEW: Create a new empty session
-    suspend fun createNewSession(title: String? = null): Int {
+    suspend fun createNewSession(title: String? = null, userEmail : String): Int {
         val now = System.currentTimeMillis()
         val newSession = ChatSession(
             title = title,
-            lastUsedTimeStamp = now
+            lastUsedTimeStamp = now,
+            email = userEmail
         )
         val newId = sessionDao.insertSession(newSession)
         return newId.toInt()
@@ -97,9 +102,9 @@ class ChatRepository(
 
 
     // NEW: Delete all sessions and messages
-    suspend fun deleteAllSessions() {
-        messageDao.deleteAllMessages()
-        sessionDao.deleteAllSessions()
+    suspend fun deleteAllSessions(email: String) {
+        messageDao.deleteAllMessages(email)
+        sessionDao.deleteAllSessions(email)
     }
 
     // NEW: Rename a session

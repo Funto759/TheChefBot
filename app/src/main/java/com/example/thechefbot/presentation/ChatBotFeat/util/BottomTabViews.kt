@@ -117,7 +117,7 @@ fun PromptInputField(
         shape = RoundedCornerShape(25.dp),
         colors = OutlinedTextFieldDefaults.colors(
             focusedTextColor = Color.Black,
-            focusedBorderColor = colorResource(R.color.orange),
+            focusedBorderColor = colorResource(R.color.pink),
             unfocusedBorderColor = Color.Transparent,
             focusedContainerColor = Color.LightGray,
             unfocusedContainerColor = Color.LightGray,

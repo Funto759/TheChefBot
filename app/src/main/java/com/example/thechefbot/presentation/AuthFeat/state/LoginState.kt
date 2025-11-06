@@ -10,7 +10,7 @@ data class LoginState(
     val signUpErrorMessage : String? = null,
    val navigateToHomeScreen : Boolean = false,
    val navigateToLoginScreen : Boolean = false,
-    val passwordVisible : Boolean = false,
+    val passwordVisible : Boolean = true,
     val signUpPasswordVisible : Boolean = false,
     val authenticated : Boolean = false,
     val unAuthenticated : Boolean = false,

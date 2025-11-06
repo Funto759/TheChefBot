@@ -222,7 +222,7 @@ fun LoginView(modifier: Modifier = Modifier,
             Button(
                 shape = Shapes().large,
                 onClick = {
-                    viewModel.handleIntents(LoginEvents.LoginUser(email, password))
+                    viewModel.handleIntents(LoginEvents.LoginUser)
                 },
                 modifier = modifier
                     .fillMaxWidth()

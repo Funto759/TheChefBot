@@ -66,7 +66,7 @@ fun DrawerContentView(
             }) {
                 Icon(
                     Icons.Default.MenuOpen, contentDescription = "Menu",
-                    tint = colorResource(R.color.orange)
+                    tint = colorResource(R.color.pink)
                 )
             }
 

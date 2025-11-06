@@ -1,6 +1,8 @@
 package com.example.thechefbot.presentation.SettingsFeat.model
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.example.thechefbot.presentation.ChatBotFeat.model.SessionPrefs
 
 import com.example.thechefbot.presentation.SettingsFeat.data.AppUser
 import com.example.thechefbot.presentation.SettingsFeat.events.SettingEvents
@@ -10,11 +12,13 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 
 class SettingsViewModel (
-    private val repo: UserRepository
+    private val repo: UserRepository,
+    private val sessionPrefs: SessionPrefs,
 ): ViewModel() {
 
 
@@ -24,16 +28,6 @@ class SettingsViewModel (
    private val _profileUiState = MutableStateFlow(SettingsState())
     val profileUiState = _profileUiState.asStateFlow()
 
-//    private val _fullName = MutableStateFlow("")
-//    val fullName = _fullName.asStateFlow()
-//
-//    private val _bio = MutableStateFlow("---------")
-//    val bio = _bio.asStateFlow()
-//    private val _email = MutableStateFlow("")
-//    val email = _email.asStateFlow()
-//
-//    private val _phone = MutableStateFlow("")
-//    val phone = _phone.asStateFlow()
 
     private var listener: ListenerRegistration? = null
 
@@ -43,7 +37,10 @@ class SettingsViewModel (
 
     fun handleIntents(events : SettingEvents){
        when(events){
-           SettingEvents.ConnectListener -> {
+           is SettingEvents.DeleteLastSession -> {
+               deleteLastSession()
+           }
+          is SettingEvents.ConnectListener -> {
                connectListener()
            }
            is SettingEvents.UpdateBio -> {
@@ -135,6 +132,14 @@ class SettingsViewModel (
             )
         }
     }
+
+    fun deleteLastSession(){
+        viewModelScope.launch {
+            sessionPrefs.clearLastSession()
+        }
+    }
+
+
 
     fun createOrMergeUser(extra: AppUser? = null, onDone: (Boolean, String?) -> Unit) {
         repo.upsertCurrentUser(extra, onDone)

@@ -9,17 +9,23 @@ import com.example.thechefbot.dao.ChatSessionDao
 import com.example.thechefbot.presentation.ChatBotFeat.model.data.ChatMessage
 import com.example.thechefbot.presentation.ChatBotFeat.model.data.ChatSession
 
-@Database(entities = [ChatSession::class, ChatMessage::class], version = 3, exportSchema = true)
+@Database(entities = [ChatSession::class, ChatMessage::class], version = 4, exportSchema = true)
 abstract class RecipeDatabase : RoomDatabase() {
     abstract fun chatDao(): ChatDao
     abstract fun chatSessionDao(): ChatSessionDao
 }
 
-val MIGRATION_1_2 = object : Migration(1, 2) {
+val MIGRATION_1_2 = object : Migration(3, 4) {
     override fun migrate(database: SupportSQLiteDatabase) {
         // Add the new column to existing table
+//        database.execSQL(
+//            "ALTER TABLE message_table ADD COLUMN imageUri TEXT"
+//        )
         database.execSQL(
-            "ALTER TABLE message_table ADD COLUMN imageUri TEXT"
+            "ALTER TABLE message_table ADD COLUMN email TEXT"
+        )
+        database.execSQL(
+            "ALTER TABLE session_table ADD COLUMN email TEXT"
         )
     }
 }

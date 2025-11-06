@@ -19,5 +19,6 @@ data class ChefUiState(
     val sessionToDelete : Int? = null,
     val allSessions : List<ChatSession> = emptyList(),
     val activeSessionId : Int? = null,
-    val session : ChatSession? = null
+    val session : ChatSession? = null,
+    val userEmail : String = ""
 )

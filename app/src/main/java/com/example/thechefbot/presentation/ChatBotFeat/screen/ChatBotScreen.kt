@@ -104,7 +104,7 @@ fun ChatBotScreen(modifier: Modifier = Modifier, navHostController: NavHostContr
 
         ModalDrawerView(
             modifier = Modifier,
-            email = profileUiState.email,
+            email = chefUiState.userEmail,
             scope = scope,
             drawerState = drawerState,
             viewModel = viewModel,
@@ -231,7 +231,7 @@ fun ModalDrawerView(modifier: Modifier = Modifier,
                         onSettingsClicked()
                     },
                     newChat = {
-                        viewModel.createNewSession()
+                        viewModel.handleEvent(ChefScreenEvents.CreateNewSession)
                         scope.launch { drawerState.close() }
                     },
                     allSessions = allSessions,

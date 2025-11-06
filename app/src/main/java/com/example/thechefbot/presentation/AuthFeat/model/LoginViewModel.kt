@@ -17,7 +17,9 @@ import com.example.thechefbot.R
 import com.example.thechefbot.presentation.AuthFeat.events.LoginEvents
 import com.example.thechefbot.presentation.AuthFeat.state.LoginState
 import com.example.thechefbot.presentation.AuthFeat.state.UserLoginState
+import com.example.thechefbot.presentation.ChatBotFeat.model.SessionPrefs
 import com.example.thechefbot.presentation.SettingsFeat.data.AppUser
+import com.example.thechefbot.presentation.SettingsFeat.events.SettingEvents
 import com.example.thechefbot.presentation.SettingsFeat.model.UserRepository
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
@@ -34,7 +36,8 @@ import kotlin.text.isNotEmpty
 
 class LoginViewModel (
     private val repo: UserRepository,
-    private val auth: FirebaseAuth
+    private val auth: FirebaseAuth,
+    private val sessionPrefs: SessionPrefs,
 ) : ViewModel() {
 
     private val _authStatus = MutableStateFlow(UserLoginState())
@@ -211,9 +214,9 @@ class LoginViewModel (
         }
     }
 
-    fun loginUserConfirmation(email: String, password: String){
-        if (email.isNotEmpty() && password.isNotEmpty()){
-         loginUser(email,password)
+    fun loginUserConfirmation(){
+        if (_authStatus.value.email.isNotEmpty() && _authStatus.value.password.isNotEmpty()){
+         loginUser(_authStatus.value.email,_authStatus.value.password)
         }else{
             _loginUiState.value = _loginUiState.value.copy(success = false, errorStatus = true, errorMessage = "Email and password cannot be empty")
 
@@ -221,10 +224,10 @@ class LoginViewModel (
     }
 
     fun signUpUserConfirmation(){
-        if (_authStatus.value.email.isNotEmpty() && _authStatus.value.password.isNotEmpty() && _authStatus.value.signUpFullName.isNotEmpty() && _authStatus.value.signUpPhoneNumber.isNotEmpty()){
-          signUpUser(_authStatus.value.email,_authStatus.value.password)
+        if (_authStatus.value.signUpEmail.isNotEmpty() && _authStatus.value.signUpPassword.isNotEmpty() && _authStatus.value.signUpFullName.isNotEmpty() && _authStatus.value.signUpPhoneNumber.isNotEmpty()){
+          signUpUser(_authStatus.value.signUpEmail,_authStatus.value.signUpPassword)
         }
-        else if (_authStatus.value.password.length <= 8){
+        else if (_authStatus.value.signUpPassword.length <= 8){
             _loginUiState.value = _loginUiState.value.copy(signUpSuccess = false, signUpErrorStatus = true, signUpErrorMessage = "Password must be at least 8 characters")
         } else{
             _loginUiState.value = _loginUiState.value.copy(signUpSuccess = false, signUpErrorStatus = true, signUpErrorMessage = "Email, Full name, Phone number and Password cannot be empty")
@@ -346,10 +349,21 @@ class LoginViewModel (
         }
     }
 
+    fun deleteLastSession(){
+        viewModelScope.launch {
+            sessionPrefs.clearLastSession()
+        }
+    }
+
+
+
 
     fun handleIntents(events : LoginEvents){
         when(events){
-            is LoginEvents.LoginUser -> loginUserConfirmation(events.email, events.password)
+            is LoginEvents.DeleteLastSession -> {
+                deleteLastSession()
+            }
+            is LoginEvents.LoginUser -> loginUserConfirmation()
             LoginEvents.NavigateToForgotPasswordScreen -> TODO()
             LoginEvents.NavigateToHomeScreen -> _loginUiState.value = _loginUiState.value.copy(navigateToHomeScreen = true)
             LoginEvents.NavigateToRegisterScreen -> TODO()
@@ -364,7 +378,10 @@ class LoginViewModel (
             is LoginEvents.SignUpUpdatePassword -> onSignUpPasswordChange(events.password)
             is LoginEvents.SignUpUser -> signUpUserConfirmation()
             LoginEvents.GetAuthStatus -> getAuthStatus()
-            is LoginEvents.SignOut -> signOut(events.context)
+            is LoginEvents.SignOut -> {
+                deleteLastSession()
+                signOut(events.context)
+            }
             LoginEvents.ResetErrorStatus -> _loginUiState.value = _loginUiState.value.copy(errorStatus = false, errorMessage = null)
             LoginEvents.ResetSignUpErrorStatus -> _loginUiState.value = _loginUiState.value.copy(signUpErrorStatus = false, signUpErrorMessage = null)
             is LoginEvents.GoogleSignIn -> launchCredentialManager(events.credentialManager,events.context,fromSignUp = events.fromSignUp)
