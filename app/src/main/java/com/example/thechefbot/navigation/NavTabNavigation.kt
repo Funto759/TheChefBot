@@ -1,23 +1,18 @@
 package com.example.thechefbot.navigation
 
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
 import androidx.navigation.NavHostController
-import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import androidx.navigation.navArgument
 import com.example.thechefbot.presentation.AuthFeat.ui.LoginUserScreen
-import com.example.thechefbot.presentation.ChatBotFeat.screen.ChatBotScreen
+import com.example.thechefbot.presentation.ChatBotFeat.ui.ChatBotScreen
 import com.example.thechefbot.presentation.SettingsFeat.ui.ProfileMainScreen
 
 import com.example.thechefbot.presentation.SettingsFeat.ui.SettingsMainScreen
-
-import kotlin.text.orEmpty
 
 @Composable
 fun NavTabNav(navController: NavHostController

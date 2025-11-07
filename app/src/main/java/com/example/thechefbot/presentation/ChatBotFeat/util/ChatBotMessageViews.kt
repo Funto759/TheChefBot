@@ -108,7 +108,11 @@ fun MessagesList(
     paddingValues: PaddingValues,
     messages: List<ChatMessage>,
     context: Context,
-    chefUiState: ChefUiState,
+    showDeleteDialog: Boolean = false,
+    loading: Boolean = false,
+    prompt: String = "",
+    errorState: Boolean = false,
+    error: String = "",
     onDismiss: () -> Unit = {},
     onConfirm: () -> Unit = {},
     onCancel: () -> Unit = {}
@@ -124,7 +128,7 @@ fun MessagesList(
        items(items = messages, key = { it.messageId }){ msg ->
             ChatMessageRow(
                 msg = msg
-                , showAlertDialog = chefUiState.showDeleteDialog
+                , showAlertDialog = showDeleteDialog
                 , context = context
                 ,session = session
                 , onDismiss = {
@@ -139,7 +143,7 @@ fun MessagesList(
             )
         }
 
-        if (chefUiState.loading) {
+        if (loading) {
             item {
                 Row(
                     modifier = Modifier
@@ -148,7 +152,7 @@ fun MessagesList(
                     horizontalArrangement = Arrangement.End
                 ) {
                     ChatBubble(
-                        text = chefUiState.prompt,
+                        text = prompt,
                         timestamp = 11,
                         isUser = true,
                         isMarkdown = false,
@@ -158,10 +162,10 @@ fun MessagesList(
             }
         }
 
-        if (chefUiState.errorState) {
+        if (errorState) {
             item {
                 Text(
-                    text = chefUiState.error,
+                    text = error,
                     color = MaterialTheme.colorScheme.error,
                     style = MaterialTheme.typography.bodyMedium,
                     modifier = Modifier.padding(16.dp)

@@ -7,7 +7,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
@@ -19,7 +18,6 @@ import com.example.thechefbot.presentation.AuthFeat.model.LoginViewModel
 import com.example.thechefbot.presentation.AuthFeat.ui.ForgotPasswordScreen
 import com.example.thechefbot.presentation.AuthFeat.ui.LoginUserScreen
 import com.example.thechefbot.presentation.AuthFeat.ui.SignUpUserScreen
-import com.example.thechefbot.presentation.ChatBotFeat.screen.ChatBotScreen
 import kotlinx.serialization.Serializable
 import org.koin.androidx.compose.koinViewModel
 

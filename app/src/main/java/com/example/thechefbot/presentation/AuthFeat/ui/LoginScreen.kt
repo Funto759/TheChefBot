@@ -203,7 +203,7 @@ fun LoginContent(
             )
 
             ForgotPasswordText(modifier = modifier, onForgotPasswordClick = onForgotPasswordClick)
-            LoginActions(modifier = modifier, onLoginClick = onLoginClick)
+            LoginActions(modifier = modifier, label = "Login", onLoginClick = onLoginClick)
 
             // Google login button
             LoginBoxes(

@@ -131,7 +131,7 @@ fun ForgotPasswordText(modifier: Modifier = Modifier, onForgotPasswordClick: () 
 
 
 @Composable
-fun LoginActions(modifier: Modifier, onLoginClick: () -> Unit) {
+fun LoginActions(modifier: Modifier,label : String, onLoginClick: () -> Unit) {
     Spacer(modifier = modifier.height(18.dp))
 
     // Login button
@@ -144,7 +144,7 @@ fun LoginActions(modifier: Modifier, onLoginClick: () -> Unit) {
             .height(50.dp),
         colors = ButtonDefaults.buttonColors(containerColor = colorResource(R.color.orange))
     ) {
-        Text(text = "Login")
+        Text(text = label)
     }
 
     Spacer(modifier = modifier.height(18.dp))
@@ -157,7 +157,7 @@ fun LoginActions(modifier: Modifier, onLoginClick: () -> Unit) {
 
 
 @Composable
- fun WelcomeHeader(modifier: Modifier = Modifier) {
+ fun WelcomeHeader(modifier: Modifier = Modifier, label: String = "Welcome back to News Deluxe") {
     Spacer(modifier = modifier.height(58.dp))
     Image(
         painter = painterResource(id = R.drawable.ic_launcher_foreground),
@@ -167,7 +167,7 @@ fun LoginActions(modifier: Modifier, onLoginClick: () -> Unit) {
     Spacer(modifier = modifier.height(8.dp))
 
     Text(
-        text = " Welcome back to News Deluxe",
+        text = label,
         fontSize = MaterialTheme.typography.titleLarge.fontSize,
         color = Color.White
 

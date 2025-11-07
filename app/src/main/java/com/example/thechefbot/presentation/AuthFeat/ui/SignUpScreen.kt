@@ -65,40 +65,21 @@ import com.example.thechefbot.presentation.AuthFeat.state.LoginState
 import com.example.thechefbot.presentation.AuthFeat.state.UserLoginState
 import com.example.thechefbot.presentation.AuthFeat.util.BoxItems
 import com.example.thechefbot.presentation.AuthFeat.util.EditableView
+import com.example.thechefbot.presentation.AuthFeat.util.LoginActions
+import com.example.thechefbot.presentation.AuthFeat.util.LoginBoxes
 import com.example.thechefbot.presentation.AuthFeat.util.LoginViewAuth
+import com.example.thechefbot.presentation.AuthFeat.util.WelcomeHeader
+import com.example.thechefbot.ui.theme.TheChefBotTheme
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun SignUpUserScreen(modifier: Modifier = Modifier, navController: NavHostController, paddingValues: PaddingValues) {
     val viewModel = koinViewModel<LoginViewModel>()
     val context = LocalContext.current
-    val scope = rememberCoroutineScope()
     val credentialManager = remember { CredentialManager.create(context) }
     val loginUiState by viewModel.loginUiState.collectAsStateWithLifecycle()
     val authUiState by viewModel.authStatus.collectAsStateWithLifecycle()
 
-    SignUpLogin(
-        viewModel = viewModel,
-        navController = navController,
-        paddingValues = paddingValues,
-        context = context,
-        credentialManager = credentialManager,
-        loginUiState = loginUiState,
-        authUiState = authUiState
-    )
-}
-
-
-@Composable
-fun SignUpLogin(modifier: Modifier = Modifier,
-                loginUiState: LoginState,
-                authUiState: UserLoginState,
-                viewModel: LoginViewModel,
-                context: Context,
-                credentialManager: CredentialManager,
-                navController: NavHostController,
-                paddingValues: PaddingValues
-) {
     when{
         loginUiState.navigateToHomeScreen -> {
             navController.navigate(Routes.Tabs){
@@ -117,29 +98,88 @@ fun SignUpLogin(modifier: Modifier = Modifier,
 
     }
 
-    Box(modifier = modifier.fillMaxSize().padding(paddingValues = paddingValues)) {
+    SignUpLogin(
+        paddingValues = paddingValues
+        , isLoading = authUiState.isLoading
+        , email = authUiState.email
+        , password = authUiState.signUpPassword
+        , fullName = authUiState.signUpFullName
+        , phoneNumber = authUiState.signUpPhoneNumber
+        , passWordVisible = authUiState.signUpPasswordVisible
+        , onSignUpClick = {
+            viewModel.handleIntents(LoginEvents.SignUpUser)
+        }
+        , onGoogleClick = {
+            viewModel.handleIntents(LoginEvents.GoogleSignIn(credentialManager = credentialManager, context = context,fromSignUp = true))
+        }
+        , goToSignUp = {
+            navController.navigate(Routes.Login)
+        },
+        updateEmail = {
+            viewModel.handleIntents(LoginEvents.SignUpUpdateEmail(it))
+        },
+        updatePassword = {
+            viewModel.handleIntents(LoginEvents.SignUpUpdatePassword(it))
+        },
 
-        SignUpContent(modifier
-            , authUiState
-            , loginUiState
-            , viewModel
-            , onSignUpClick = {
-                viewModel.handleIntents(LoginEvents.SignUpUser)
-            }
-            , onGoogleClick = {
-                viewModel.handleIntents(LoginEvents.GoogleSignIn(credentialManager = credentialManager, context = context,fromSignUp = true))
-            }
-            , goToSignUp = {
-                navController.navigate(Routes.Login)
-            }
+        updateFullName = {
+            viewModel.handleIntents(LoginEvents.UpdateFullName(it))
+        },
+        updatePhoneNumber = {
+            viewModel.handleIntents(LoginEvents.UpdatePhoneNumber(it))
+
+        },
+        togglePasswordVisibility = {
+            viewModel.handleIntents(LoginEvents.SignUpPasswordVisible)
+        }
+    )
+}
+
+
+@Composable
+fun SignUpLogin(modifier: Modifier = Modifier,
+                isLoading : Boolean = false,
+                paddingValues: PaddingValues,
+                email: String,
+                password: String,
+                fullName: String,
+                phoneNumber: String,
+                passWordVisible: Boolean,
+                onSignUpClick : () -> Unit,
+                onGoogleClick : () -> Unit,
+                goToSignUp : () -> Unit,
+                updateEmail: (String) -> Unit = {},
+                updatePassword: (String) -> Unit = {},
+                updateFullName: (String) -> Unit = {},
+                updatePhoneNumber: (String) -> Unit = {},
+                togglePasswordVisibility: () -> Unit = {}
+) {
+
+
+    Box(modifier = modifier.fillMaxSize().padding(paddingValues = paddingValues)) {
+        SignUpContent(modifier = modifier
+            , email = email
+            , password = password
+            , fullName = fullName,
+            phoneNumber = phoneNumber,
+            passWordVisible = passWordVisible
+            , onSignUpClick = onSignUpClick
+            , onGoogleClick = onGoogleClick
+            , goToSignUp = goToSignUp,
+            updateEmail = updateEmail,
+            updatePassword = updatePassword,
+
+            updateFullName = updateFullName,
+            updatePhoneNumber = updatePhoneNumber,
+            togglePasswordVisibility = togglePasswordVisibility
         )
-        when{
-            authUiState.isLoading ->{
+
+        if (isLoading){
                 CircularProgressIndicator(
                     modifier = modifier.align(Alignment.Center)
                 )
             }
-        }
+
 
     }
 }
@@ -147,94 +187,52 @@ fun SignUpLogin(modifier: Modifier = Modifier,
 @Composable
 fun SignUpContent(
     modifier: Modifier = Modifier,
-    authUiState: UserLoginState,
-    loginUiState: LoginState,
-    viewModel: LoginViewModel,
+    email: String,
+    password: String,
+    fullName: String,
+    phoneNumber: String,
+    passWordVisible: Boolean,
     onSignUpClick : () -> Unit,
     onGoogleClick : () -> Unit,
-    goToSignUp : () -> Unit
+    goToSignUp : () -> Unit,
+    updateEmail: (String) -> Unit = {},
+    updatePassword: (String) -> Unit = {},
+    updateFullName: (String) -> Unit = {},
+    updatePhoneNumber: (String) -> Unit = {},
+    togglePasswordVisibility: () -> Unit = {}
 ) {
     Column(
         modifier.fillMaxSize(),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-
-
-        Spacer(modifier = modifier.height(58.dp))
-
-        Image(
-            painter = painterResource(id = R.drawable.ic_launcher_foreground),
-            contentDescription = "Image",
-            modifier = modifier.height(100.dp)
-        )
-        Spacer(modifier = modifier.height(8.dp))
-
-        Text(
-            text = " SignUp to get Started",
-            fontSize = MaterialTheme.typography.titleLarge.fontSize,
-            color = Color.White
-
-        )
+        // Welcome Header
+        WelcomeHeader(modifier = modifier, label = " SignUp to get Started")
 
         Spacer(modifier = modifier.height(26.dp))
 
         // Sign Up edit fields view
-
         SignUpTextFields(
             modifier = modifier,
-            email = authUiState.signUpEmail,
-            password = authUiState.signUpPassword,
-            passWordVisible = loginUiState.signUpPasswordVisible,
-            viewModel = viewModel,
-            fullName = authUiState.signUpFullName,
-            phoneNumber = authUiState.signUpPhoneNumber
+            email = email,
+            password = password,
+            passWordVisible = passWordVisible,
+            fullName = fullName,
+            phoneNumber = phoneNumber,
+            updateEmail = updateEmail,
+            updatePassword = updatePassword,
+            updateFullName = updateFullName,
+            updatePhoneNumber = updatePhoneNumber,
+            togglePasswordVisibility = togglePasswordVisibility
         )
 
-
-        Spacer(modifier = modifier.height(18.dp))
-
-
-        // Sign Up button
-
-        Button(
-            shape = Shapes().large,
-            onClick = {
-                onSignUpClick()
-            },
-            modifier = modifier
-                .fillMaxWidth()
-                .padding(end = 12.dp, start = 12.dp)
-                .height(50.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = colorResource(R.color.orange))
-        ) {
-            Text(text = "SignUp")
-        }
-
-        Spacer(modifier = modifier.height(18.dp))
-        Text(
-            text = "Or continue with",
-            color = Color.Gray
-        )
-        Spacer(modifier = modifier.height(18.dp))
+        LoginActions(modifier = modifier, label = "Sign Up", onLoginClick = onSignUpClick)
 
         // Google login button
-        Row(
-            modifier = modifier
-                .fillMaxWidth()
-                .padding(end = 12.dp, start = 12.dp),
-            horizontalArrangement = Arrangement.SpaceAround,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-
-
-            BoxItems(modifier.clickable{
-      onGoogleClick()
-            }, R.drawable.ic_google, text = "Google")
-
-        }
-        Spacer(modifier = modifier.height(18.dp))
-
+        LoginBoxes(
+            modifier = modifier,
+            onGoogle = onGoogleClick
+        )
         // Go to login view
         LoginViewAuth(
             modifier = modifier,
@@ -255,7 +253,11 @@ fun SignUpTextFields(
     fullName: String,
     phoneNumber: String,
     passWordVisible: Boolean,
-    viewModel: LoginViewModel
+    updateEmail: (String) -> Unit = {},
+    updatePassword: (String) -> Unit = {},
+    updateFullName: (String) -> Unit = {},
+    updatePhoneNumber: (String) -> Unit = {},
+    togglePasswordVisibility: () -> Unit = {}
 ) {
 
     EditableView(
@@ -263,7 +265,7 @@ fun SignUpTextFields(
         value = fullName,
         hint = "Full Name",
         onValueChange = {
-            viewModel.handleIntents(LoginEvents.UpdateFullName(it))
+            updateFullName(it)
         }
     )
 
@@ -274,7 +276,7 @@ fun SignUpTextFields(
         value = phoneNumber,
         hint = "Phone Number",
         onValueChange = {
-            viewModel.handleIntents(LoginEvents.UpdatePhoneNumber(it))
+            updatePhoneNumber(it)
         }
     )
 
@@ -285,7 +287,7 @@ fun SignUpTextFields(
         value = email,
         hint = "Email",
         onValueChange = {
-            viewModel.handleIntents(LoginEvents.SignUpUpdateEmail(it))
+            updateEmail(it)
         }
     )
 
@@ -296,12 +298,33 @@ fun SignUpTextFields(
         value = password,
         hint = "Password",
         onValueChange = {
-            viewModel.handleIntents(LoginEvents.SignUpUpdatePassword(it))
+            updatePassword(it)
         },
         passWordVisible = passWordVisible,
         isPasswordField = true,
         togglePasswordVisibility = {
-            viewModel.handleIntents(LoginEvents.SignUpPasswordVisible)
+            togglePasswordVisibility()
         }
     )
+
+}
+
+
+@Preview
+@Composable
+fun previewLoginScreenUi(){
+    TheChefBotTheme {
+        SignUpLogin(
+            paddingValues = PaddingValues(0.dp)
+            , isLoading = false,
+            email = ""
+            , password = ""
+            , fullName = ""
+            , phoneNumber = ""
+            , passWordVisible = true
+            , onSignUpClick = {}
+            , onGoogleClick = {}
+            , goToSignUp = {}
+        )
+    }
 }
