@@ -40,11 +40,11 @@ import com.example.thechefbot.presentation.ChatBotFeat.util.MessagesList
 import com.example.thechefbot.presentation.ChatBotFeat.util.PromptInputField
 import com.example.thechefbot.presentation.ChatBotFeat.util.SendButton
 import com.example.thechefbot.presentation.ChatBotFeat.util.TopChefBar
-import com.example.thechefbot.presentation.ChatBotFeat.model.events.ChefScreenEvents
+import com.example.thechefbot.presentation.ChatBotFeat.events.ChefScreenEvents
 import com.example.thechefbot.presentation.ChatBotFeat.model.RecipeViewModel
-import com.example.thechefbot.presentation.ChatBotFeat.model.data.ChatMessage
-import com.example.thechefbot.presentation.ChatBotFeat.model.data.ChatSession
-import com.example.thechefbot.presentation.ChatBotFeat.model.state.ChefUiState
+import com.example.thechefbot.presentation.ChatBotFeat.data.ChatMessage
+import com.example.thechefbot.presentation.ChatBotFeat.data.ChatSession
+import com.example.thechefbot.presentation.ChatBotFeat.state.ChefUiState
 import com.example.thechefbot.presentation.SettingsFeat.model.SettingsViewModel
 import com.example.thechefbot.util.launchCamera
 import com.example.thechefbot.util.launchPhotoPicker
@@ -52,9 +52,6 @@ import com.example.thechefbot.util.saveImageToInternalStorage
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

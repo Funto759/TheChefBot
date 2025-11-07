@@ -2,14 +2,12 @@ package com.example.thechefbot.presentation.ChatBotFeat.model
 
 import android.content.Context
 import android.net.Uri
-import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.thechefbot.presentation.ChatBotFeat.model.data.ChatMessage
-import com.example.thechefbot.presentation.ChatBotFeat.model.data.ChatSession
-import com.example.thechefbot.presentation.ChatBotFeat.model.events.ChefScreenEvents
-import com.example.thechefbot.presentation.ChatBotFeat.model.state.ChefUiState
-import com.example.thechefbot.presentation.SettingsFeat.events.SettingEvents
+import com.example.thechefbot.presentation.ChatBotFeat.data.ChatMessage
+import com.example.thechefbot.presentation.ChatBotFeat.data.ChatSession
+import com.example.thechefbot.presentation.ChatBotFeat.events.ChefScreenEvents
+import com.example.thechefbot.presentation.ChatBotFeat.state.ChefUiState
 import com.example.thechefbot.presentation.SettingsFeat.model.UserRepository
 import com.example.thechefbot.util.CommonUtil.getBitmapFromUri
 import com.google.ai.client.generativeai.GenerativeModel
@@ -20,10 +18,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch

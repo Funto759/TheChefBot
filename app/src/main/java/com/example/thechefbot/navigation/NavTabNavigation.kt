@@ -13,8 +13,10 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.example.thechefbot.presentation.AuthFeat.ui.LoginUserScreen
 import com.example.thechefbot.presentation.ChatBotFeat.screen.ChatBotScreen
-import com.example.thechefbot.presentation.SettingsFeat.ui.ProfileScreen
-import com.example.thechefbot.presentation.SettingsFeat.ui.SettingsScreen
+import com.example.thechefbot.presentation.SettingsFeat.ui.ProfileMainScreen
+
+import com.example.thechefbot.presentation.SettingsFeat.ui.SettingsMainScreen
+
 import kotlin.text.orEmpty
 
 @Composable
@@ -27,8 +29,6 @@ fun NavTabNav(navController: NavHostController
         startDestination = Routes.Home,
         route = Routes.Tabs,
     ) {
-
-
         composable (Routes.Login){
             Scaffold (modifier = Modifier.fillMaxSize()){ paddingValues ->
                 LoginUserScreen(navController = navController, paddingValues = paddingValues)
@@ -38,20 +38,16 @@ fun NavTabNav(navController: NavHostController
         composable(Routes.Home) {
             ChatBotScreen(modifier = Modifier, navHostController = navController)
         }
+
+
         composable(Routes.Profile)  {
-            Scaffold(modifier = Modifier.fillMaxSize()) {
-                SettingsScreen(navHostController = navController, paddingValues = it) { paddingValues ->
-                    onSignOut(paddingValues)
+                SettingsMainScreen(navHostController = navController) { signOutStatus ->
+                    onSignOut(signOutStatus)
                 }
-            }
         }
 
-
-
         composable(Routes.UserProfile) {
-            Scaffold (modifier = Modifier.fillMaxSize()) { paddingValues ->
-                ProfileScreen(navHostController = navController, paddingValues = paddingValues)
-            }
+            ProfileMainScreen(navHostController = navController)
         }
 
 

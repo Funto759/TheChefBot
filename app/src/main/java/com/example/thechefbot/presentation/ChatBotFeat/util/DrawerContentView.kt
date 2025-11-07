@@ -35,7 +35,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.thechefbot.R
-import com.example.thechefbot.presentation.ChatBotFeat.model.data.ChatSession
+import com.example.thechefbot.presentation.ChatBotFeat.data.ChatSession
 import kotlin.collections.forEach
 
 @Composable

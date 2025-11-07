@@ -1,8 +1,11 @@
-package com.example.thechefbot.presentation.ChatBotFeat.model.state
+package com.example.thechefbot.presentation.ChatBotFeat.state
 
 import android.net.Uri
-import com.example.thechefbot.presentation.ChatBotFeat.model.data.ChatSession
+import androidx.compose.runtime.Immutable
+import com.example.thechefbot.presentation.ChatBotFeat.data.ChatSession
 
+
+@Immutable
 data class ChefUiState(
     val loading : Boolean = false,
     val error : String = "",

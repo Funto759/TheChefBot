@@ -64,8 +64,12 @@ import com.example.thechefbot.presentation.AuthFeat.state.LoginState
 import com.example.thechefbot.presentation.AuthFeat.state.UserLoginState
 import com.example.thechefbot.presentation.AuthFeat.util.BoxItems
 import com.example.thechefbot.presentation.AuthFeat.util.EditableView
+import com.example.thechefbot.presentation.AuthFeat.util.ForgotPasswordText
+import com.example.thechefbot.presentation.AuthFeat.util.LoginActions
 import com.example.thechefbot.presentation.AuthFeat.util.LoginBoxes
 import com.example.thechefbot.presentation.AuthFeat.util.LoginViewAuth
+import com.example.thechefbot.presentation.AuthFeat.util.WelcomeHeader
+import com.example.thechefbot.ui.theme.TheChefBotTheme
 import dagger.hilt.android.internal.Contexts
 import org.koin.androidx.compose.koinViewModel
 
@@ -76,6 +80,8 @@ fun LoginUserScreen(modifier: Modifier = Modifier, navController: NavHostControl
     val viewModel = koinViewModel<LoginViewModel>()
     val loginUiState by viewModel.loginUiState.collectAsStateWithLifecycle()
     val authUiState by viewModel.authStatus.collectAsStateWithLifecycle()
+    val credentialManager = remember { CredentialManager.create(context) }
+
 
     when{
         loginUiState.navigateToHomeScreen -> {
@@ -89,21 +95,29 @@ fun LoginUserScreen(modifier: Modifier = Modifier, navController: NavHostControl
             Toast.makeText(LocalContext.current, loginUiState.errorMessage, Toast.LENGTH_SHORT).show()
             viewModel.handleIntents(LoginEvents.ResetErrorStatus)
         }
-
-
-
     }
 
     ScreenLogin(
-        context = context,
         modifier = modifier,
-        viewModel = viewModel,
-        loginUiState = loginUiState,
-        authUiState = authUiState,
-        navController = navController,
         paddingValues = paddingValues,
-        loginAuthenticated = {
-            viewModel.handleIntents(LoginEvents.NavigateToHomeScreen)
+        isLoading = authUiState.isLoading,
+        email =authUiState.email,
+        password = authUiState.password,
+        passWordVisible = authUiState.passwordVisible,
+        onEmailChange = { viewModel.handleIntents(LoginEvents.UpdateEmail(it)) },
+        onPasswordChange = { viewModel.handleIntents(LoginEvents.UpdatePassword(it)) },
+        onPasswordVisibilityToggle = { viewModel.handleIntents(LoginEvents.PasswordVisible) },
+        onForgotPasswordClick = { navController.navigate(Routes.Otp) },
+        onLoginClick = { viewModel.handleIntents(LoginEvents.LoginUser) },
+        onSignUpClick = { navController.navigate(Routes.SignUp) },
+        onGoogleSignIn = {
+            viewModel.handleIntents(
+                LoginEvents.GoogleSignIn(
+                    credentialManager = credentialManager,
+                    context = context,
+                    false
+                )
+            )
         }
     )
 }
@@ -111,42 +125,54 @@ fun LoginUserScreen(modifier: Modifier = Modifier, navController: NavHostControl
 
 @Composable
 fun ScreenLogin(modifier: Modifier = Modifier,
-                navController: NavHostController,
                 paddingValues: PaddingValues,
-                context: Context,
-                viewModel: LoginViewModel,
-                loginUiState: LoginState,
-                authUiState: UserLoginState,
-                loginAuthenticated : () -> Unit
+                isLoading : Boolean = false,
+                email : String,
+                password : String,
+                passWordVisible : Boolean,
+                onEmailChange: (String) -> Unit ={},
+                onPasswordChange: (String) -> Unit ={},
+                onPasswordVisibilityToggle: () -> Unit ={},
+                onForgotPasswordClick: () -> Unit ={},
+                onLoginClick: () -> Unit ={},
+                onSignUpClick: () -> Unit ={},
+                onGoogleSignIn: () -> Unit ={}
 ) {
-
-    LoginView(
+    LoginContent(
         modifier = modifier,
         paddingValues = paddingValues,
-        viewModel = viewModel,
-        email = authUiState.email,
-        password = authUiState.password,
-        authUiState = authUiState,
-        context = context,
-        navHostController = navController,
-        passWordVisible = loginUiState.passwordVisible
+        isLoading = isLoading,
+        email = email,
+        password = password,
+        onEmailChange = onEmailChange,
+        onPasswordChange = onPasswordChange,
+        passWordVisible = passWordVisible,
+        onPasswordVisibilityToggle = onPasswordVisibilityToggle,
+        onForgotPasswordClick = onForgotPasswordClick,
+        onLoginClick = onLoginClick,
+        onSignUpClick = onSignUpClick,
+        onGoogleSignIn = onGoogleSignIn
     )
+
     }
 
-
 @Composable
-fun LoginView(modifier: Modifier = Modifier,
-              paddingValues: PaddingValues,
-              viewModel : LoginViewModel,
-              email : String,
-              password : String,
-              authUiState : UserLoginState,
-              context : Context,
-              navHostController: NavHostController,
-              passWordVisible : Boolean
-              ) {
+fun LoginContent(
+    modifier: Modifier = Modifier,
+    paddingValues: PaddingValues,
+    email: String,
+    password: String,
+    isLoading : Boolean = false,
+    onEmailChange: (String) -> Unit,
+    onPasswordChange: (String) -> Unit,
+    passWordVisible: Boolean,
+    onPasswordVisibilityToggle: () -> Unit,
+    onForgotPasswordClick: () -> Unit,
+    onLoginClick: () -> Unit,
+    onSignUpClick: () -> Unit,
+    onGoogleSignIn: () -> Unit
+) {
 
-    val credentialManager = remember { CredentialManager.create(context) }
     Box(modifier = modifier.fillMaxSize().padding(paddingValues = paddingValues)) {
         Column(
             modifier.fillMaxSize(),
@@ -154,124 +180,66 @@ fun LoginView(modifier: Modifier = Modifier,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
 
-
-            Spacer(modifier = modifier.height(58.dp))
-
-            Image(
-                painter = painterResource(id = R.drawable.ic_launcher_foreground),
-                contentDescription = "Image",
-                modifier = modifier.height(100.dp)
-            )
-            Spacer(modifier = modifier.height(8.dp))
-
-            Text(
-                text = " Welcome back to News Deluxe",
-                fontSize = MaterialTheme.typography.titleLarge.fontSize,
-                color = Color.White
-
-            )
-
-            Spacer(modifier = modifier.height(26.dp))
-
-            val state = if (passWordVisible) {
-                VisualTransformation.None
-            } else {
-                PasswordVisualTransformation()
-            }
-
+            // Welcome Header
+            WelcomeHeader(modifier = modifier)
+            // Enter email edit view
             EditableView(
                 modifier = modifier,
-                value = authUiState.email,
+                value = email,
                 hint = "Email",
-                onValueChange = {
-                    viewModel.handleIntents(LoginEvents.UpdateEmail(it))
-                }
+                onValueChange = onEmailChange
             )
-
+            /// Spacer
             Spacer(modifier = modifier.height(18.dp))
-
+            // Enter Password Edit View
             EditableView(
                 modifier = modifier,
-                value = authUiState.password,
+                value = password,
                 hint = "Password",
-                onValueChange = {
-                    viewModel.handleIntents(LoginEvents.UpdatePassword(it))
-                },
+                onValueChange = onPasswordChange,
                 passWordVisible = passWordVisible,
                 isPasswordField = true,
-                togglePasswordVisibility = {
-                    viewModel.handleIntents(LoginEvents.PasswordVisible)
-                }
+                togglePasswordVisibility = onPasswordVisibilityToggle
             )
 
-            Spacer(modifier = modifier.height(8.dp))
+            ForgotPasswordText(modifier = modifier, onForgotPasswordClick = onForgotPasswordClick)
+            LoginActions(modifier = modifier, onLoginClick = onLoginClick)
 
-            Text(
-                text = "Forgot the password?",
-                modifier = modifier
-                    .clickable {
-                       navHostController.navigate(Routes.Otp)
-                    }
-                    .align(Alignment.End)
-                    .padding(end = 12.dp, start = 12.dp),
-                color = Color.Gray
-            )
-
-            Spacer(modifier = modifier.height(18.dp))
-
-            Button(
-                shape = Shapes().large,
-                onClick = {
-                    viewModel.handleIntents(LoginEvents.LoginUser)
-                },
-                modifier = modifier
-                    .fillMaxWidth()
-                    .padding(end = 12.dp, start = 12.dp)
-                    .height(50.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = colorResource(R.color.orange))
-            ) {
-                Text(text = "Login")
-            }
-
-            Spacer(modifier = modifier.height(18.dp))
-            Text(
-                text = "Or continue with",
-                color = Color.Gray
-            )
-            Spacer(modifier = modifier.height(18.dp))
+            // Google login button
             LoginBoxes(
                 modifier = modifier,
                 onGoogle = {
-                    viewModel.handleIntents(
-                        LoginEvents.GoogleSignIn(
-                            credentialManager = credentialManager,
-                            context = context,
-                            false
-                        )
-                    )
+                  onGoogleSignIn()
                 }
             )
-            Spacer(modifier = modifier.height(18.dp))
+
+            // Sign Up View
             LoginViewAuth(
                 modifier = modifier
                 , text = "Sign Up"
-                , onClick = {
-                    navHostController.navigate(Routes.SignUp)
-                })
-
-
+                , onClick = onSignUpClick)
         }
-        when {
-            authUiState.isLoading -> {
+        if (isLoading){
                 CircularProgressIndicator(
                     modifier = modifier.align(Alignment.Center)
                 )
-            }
         }
     }
 }
 
 
+@Preview
+@Composable
+fun previewLoginScreen(){
+    TheChefBotTheme {
+        ScreenLogin(
+            paddingValues = PaddingValues(0.dp),
+            isLoading = false,
+            email = "",
+            password = "",
+            passWordVisible = true,
+        )
 
-
+    }
+}
 

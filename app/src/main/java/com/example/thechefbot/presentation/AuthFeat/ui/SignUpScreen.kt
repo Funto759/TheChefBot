@@ -179,6 +179,8 @@ fun SignUpContent(
 
         Spacer(modifier = modifier.height(26.dp))
 
+        // Sign Up edit fields view
+
         SignUpTextFields(
             modifier = modifier,
             email = authUiState.signUpEmail,
@@ -191,6 +193,9 @@ fun SignUpContent(
 
 
         Spacer(modifier = modifier.height(18.dp))
+
+
+        // Sign Up button
 
         Button(
             shape = Shapes().large,
@@ -212,6 +217,8 @@ fun SignUpContent(
             color = Color.Gray
         )
         Spacer(modifier = modifier.height(18.dp))
+
+        // Google login button
         Row(
             modifier = modifier
                 .fillMaxWidth()
@@ -219,12 +226,16 @@ fun SignUpContent(
             horizontalArrangement = Arrangement.SpaceAround,
             verticalAlignment = Alignment.CenterVertically
         ) {
+
+
             BoxItems(modifier.clickable{
       onGoogleClick()
             }, R.drawable.ic_google, text = "Google")
 
         }
         Spacer(modifier = modifier.height(18.dp))
+
+        // Go to login view
         LoginViewAuth(
             modifier = modifier,
             onClick = {

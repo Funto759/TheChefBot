@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -21,9 +22,9 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.thechefbot.R
-import com.example.thechefbot.presentation.ChatBotFeat.model.data.ChatMessage
-import com.example.thechefbot.presentation.ChatBotFeat.model.data.ChatSession
-import com.example.thechefbot.presentation.ChatBotFeat.model.state.ChefUiState
+import com.example.thechefbot.presentation.ChatBotFeat.data.ChatMessage
+import com.example.thechefbot.presentation.ChatBotFeat.data.ChatSession
+import com.example.thechefbot.presentation.ChatBotFeat.state.ChefUiState
 import com.example.thechefbot.util.CommonUtil.formatTimestamp
 
 
@@ -120,8 +121,7 @@ fun MessagesList(
         verticalArrangement = Arrangement.Top,
         horizontalAlignment = Alignment.Start
     ) {
-        items(messages.size) { index ->
-            val msg = messages[index]
+       items(items = messages, key = { it.messageId }){ msg ->
             ChatMessageRow(
                 msg = msg
                 , showAlertDialog = chefUiState.showDeleteDialog

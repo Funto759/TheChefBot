@@ -1,4 +1,4 @@
-package com.example.thechefbot.presentation.ChatBotFeat.model.events
+package com.example.thechefbot.presentation.ChatBotFeat.events
 
 import android.content.Context
 import android.net.Uri
