@@ -639,7 +639,7 @@ fun previewChatBotMainScreen(){
             session = ChatSession(sessionId = 1, title = "Funto", lastUsedTimeStamp = 1L, email = "user@example.com"),
             context = LocalContext.current,
             showDeleteDialog = {},
-            showDialogStatus = false,
+            showDialogStatus = true,
             onSettingsClicked = {},
             sessionToDelete = {},
             drawerState = rememberDrawerState(initialValue = DrawerValue.Closed),

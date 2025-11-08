@@ -8,6 +8,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.colorResource
+import com.example.thechefbot.R
 import com.example.thechefbot.presentation.AuthFeat.util.EditableView
 import com.example.thechefbot.presentation.ChatBotFeat.model.RecipeViewModel
 
@@ -29,10 +31,10 @@ fun ConfirmDeleteDialog(
         },
         confirmButton = {
             Button(onClick = onConfirm, colors = ButtonDefaults.buttonColors(
-                containerColor = MaterialTheme.colorScheme.error
-            )) { Text("Delete") }
+                containerColor = colorResource(R.color.orange)
+            )) { Text("Delete", color = colorResource(R.color.pink)) }
         },
-        dismissButton = { TextButton(onClick = onCancel) { Text("Cancel") } }
+        dismissButton = { TextButton(onClick = onCancel) { Text("Cancel", color = colorResource(R.color.pink)) } }
     )
 }
 
@@ -59,9 +61,9 @@ fun ChangeTitleDialog(
         },
         confirmButton = {
             Button(onClick = onConfirm, colors = ButtonDefaults.buttonColors(
-                containerColor = MaterialTheme.colorScheme.error
-            )) { Text("Rename") }
+                containerColor = colorResource(R.color.orange)
+            )) { Text("Rename", color = colorResource(R.color.pink)) }
         },
-        dismissButton = { TextButton(onClick = onCancel) { Text("Cancel") } }
+        dismissButton = { TextButton(onClick = onCancel) { Text("Cancel", color = colorResource(R.color.pink)) } }
     )
 }
