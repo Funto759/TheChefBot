@@ -84,8 +84,8 @@ class LoginViewModel (
                     return@launch
                 }
             }
-//            val webClientId = context.getString(R.string.default_web_client_id)
-            val webClientId = "context.getString(R.string.default_web_client_id)"
+            val webClientId = context.getString(R.string.default_web_client_id)
+//            val webClientId = "context.getString(R.string.default_web_client_id)"
 
             // [START create_credential_manager_request]
             // Instantiate a Google sign-in request

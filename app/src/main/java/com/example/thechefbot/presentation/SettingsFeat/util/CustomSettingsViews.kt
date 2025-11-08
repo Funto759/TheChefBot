@@ -78,13 +78,13 @@ fun SettingsItemView(
 fun SettingsSwitchItem(
     modifier: Modifier = Modifier,
     pushNotificationsEnabled: Boolean,
-    togglePushNotifications: () -> Unit,
+    togglePushNotifications: (Boolean) -> Unit,
     label : String,
     leadingIcon: ImageVector
 
     ) {
     Row(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically
@@ -92,7 +92,7 @@ fun SettingsSwitchItem(
         Icon(
             imageVector = leadingIcon,
             contentDescription = "Setting items",
-            modifier = Modifier
+            modifier = modifier
                 .size(24.dp)
                 .padding(end = 8.dp),
             tint = colorResource(R.color.orange)
@@ -101,7 +101,7 @@ fun SettingsSwitchItem(
         Text(
             text = label,
             style = MaterialTheme.typography.bodyLarge,
-            modifier = Modifier.weight(1f)
+            modifier = modifier.weight(1f)
         )
         Switch(
             colors = SwitchDefaults.colors(
@@ -113,7 +113,7 @@ fun SettingsSwitchItem(
                 uncheckedBorderColor = colorResource(R.color.pink),
             ),
             checked = pushNotificationsEnabled,
-            onCheckedChange = { togglePushNotifications() }
+            onCheckedChange = { togglePushNotifications(it) }
         )
     }
 }
@@ -126,7 +126,7 @@ fun SettingsTittleView(modifier: Modifier = Modifier, label : String) {
         text = label,
         color = Color.LightGray,
         style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.SemiBold),
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 8.dp)
     )
@@ -140,7 +140,7 @@ fun SettingsUserDetailsView(
     painter : Painter
     ) {
     Row(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .clickable { onClick() }
             .padding(horizontal = 16.dp, vertical = 12.dp),
@@ -150,7 +150,7 @@ fun SettingsUserDetailsView(
         Image(
             painter = painter, // placeholder image resource
             contentDescription = "Profile picture",
-            modifier = Modifier
+            modifier = modifier
                 .size(40.dp)
                 .clip(CircleShape)
         )
@@ -161,13 +161,13 @@ fun SettingsUserDetailsView(
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
             style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium),
-            modifier = Modifier.weight(1f)  // take remaining space
+            modifier = modifier.weight(1f)  // take remaining space
         )
         // Trailing arrow icon
         Icon(
             imageVector = Icons.Default.ArrowForwardIos,  // requires material-icons-extended
             contentDescription = "Profile details",
-            modifier = Modifier.size(24.dp),
+            modifier = modifier.size(24.dp),
             tint = colorResource(R.color.orange)
         )
     }

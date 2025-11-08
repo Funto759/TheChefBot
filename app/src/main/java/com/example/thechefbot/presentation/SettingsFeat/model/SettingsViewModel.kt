@@ -3,12 +3,14 @@ package com.example.thechefbot.presentation.SettingsFeat.model
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.thechefbot.presentation.ChatBotFeat.model.SessionPrefs
+import com.example.thechefbot.presentation.ChatBotFeat.model.ThemePrefs
 
 import com.example.thechefbot.presentation.SettingsFeat.data.AppUser
 import com.example.thechefbot.presentation.SettingsFeat.events.SettingEvents
 import com.example.thechefbot.presentation.SettingsFeat.state.SettingsState
 import com.google.firebase.firestore.ListenerRegistration
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -19,6 +21,7 @@ import javax.inject.Inject
 class SettingsViewModel (
     private val repo: UserRepository,
     private val sessionPrefs: SessionPrefs,
+    private val themePrefs: ThemePrefs,
 ): ViewModel() {
 
 
@@ -33,10 +36,16 @@ class SettingsViewModel (
 
     init {
         handleIntents(SettingEvents.ConnectListener)
+        _profileUiState.update {
+            it.copy(isDark = themePrefs.isDark())
+        }
     }
 
     fun handleIntents(events : SettingEvents){
        when(events){
+           is SettingEvents.ToggleTheme -> {
+               toggleTheme(events.enabled)
+           }
            is SettingEvents.DeleteLastSession -> {
                deleteLastSession()
            }
@@ -139,6 +148,28 @@ class SettingsViewModel (
         }
     }
 
+
+    fun setThemeStatus(){
+        viewModelScope.launch {
+            themePrefs.isDarkFlow.collect { isDark ->
+                _profileUiState.update {
+                    it.copy(isDark = isDark)
+                }
+            }
+        }
+    }
+
+    fun toggleTheme(enabled: Boolean) {
+        println("ViewModel: Toggling theme to $enabled") // Debug log
+
+        // Update ThemePrefs (triggers MainActivity to recompose)
+        themePrefs.setDark(enabled)
+
+        // Update local state (for toggle UI)
+        _profileUiState.update {
+            it.copy(isDark = enabled)
+        }
+    }
 
 
     fun createOrMergeUser(extra: AppUser? = null, onDone: (Boolean, String?) -> Unit) {

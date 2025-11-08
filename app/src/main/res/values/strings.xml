@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">Panda Bot</string>
+    <string name="default_web_client_id">143493035715-q5g9p5kuckphminjbpasdcii5ivqnm80.apps.googleusercontent.com</string>
+
 </resources>

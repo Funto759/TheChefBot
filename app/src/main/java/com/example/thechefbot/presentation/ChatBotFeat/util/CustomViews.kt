@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
@@ -29,6 +30,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -71,16 +73,20 @@ fun ChatBubble(
 ) {
     // colors
     val bubbleColor =
-        if (isUser) Color.DarkGray
+        if (isUser) colorResource(R.color.pink)
         else Color.DarkGray
 
     val textColor =
-        if (isUser) Color.LightGray
+        if (isUser) Color.DarkGray
         else Color.LightGray
 
     // alignment: user on the right, bot on the left
     val horizontalAlignment =
         if (isUser) Alignment.End else Alignment.Start
+
+    val bubbleWidthModifier =
+        if (loading) modifier.fillMaxWidth(0.9f)   // 90% of screen while loading
+        else Modifier.widthIn(max = 280.dp)
 
     Column(
         modifier = modifier
@@ -89,8 +95,8 @@ fun ChatBubble(
     ) {
         // the bubble itself
         Box(
-            modifier = Modifier
-                .widthIn(max = 280.dp) // don't let it stretch full width
+            modifier = modifier
+                .widthIn(max = 280.dp)
                 .background(
                     color = bubbleColor,
                     shape = RoundedCornerShape(
@@ -102,21 +108,32 @@ fun ChatBubble(
                 )
                 .padding(12.dp)
         ) {
-            if (isMarkdown) {
-                MarkdownViewer(
-                    markdownText = text,
-                    timestamp = timestamp, // we'll ignore timestamp inside viewer now
-                    modifier = Modifier.fillMaxWidth(),
-                    color = textColor
-                )
-            } else {
-                Text(
-                    text = text,
-                    color = textColor,
-                    style = MaterialTheme.typography.bodyMedium,
-                    lineHeight = 20.sp,
-                    modifier = if (loading) modifier.shimmer() else modifier
-                )
+            when {
+                loading -> {
+                    // full-width shimmering block (matches bubble width)
+                    Box(
+                        Modifier
+                            .fillMaxWidth()
+                            .heightIn(min = 20.dp) // at least one line tall
+                            .shimmer(cornerRadius = 12.dp)
+                    )
+                }
+                isMarkdown -> {
+                    MarkdownViewer(
+                        markdownText = text,
+                        timestamp = timestamp,
+                        modifier = Modifier.fillMaxWidth(),
+                        color = textColor
+                    )
+                }
+                else -> {
+                    Text(
+                        text = text,
+                        color = textColor,
+                        style = MaterialTheme.typography.bodyMedium,
+                        lineHeight = 20.sp
+                    )
+                }
             }
         }
 
@@ -167,7 +184,7 @@ fun ChatImageBubble(
         horizontalAlignment = horizontalAlignment
     ) {
         Box(
-            modifier = Modifier
+            modifier = modifier
                 .widthIn(max = 220.dp) // slightly narrower
                 .background(
                     color = bubbleColor,
@@ -184,7 +201,7 @@ fun ChatImageBubble(
                 model = Uri.parse(imageUri),
                 contentDescription = "user attachment",
                 contentScale = ContentScale.FillWidth,
-                modifier = Modifier
+                modifier = modifier
                     .size(160.dp)
                     .background(Color.Black, RoundedCornerShape(12.dp))
             )
@@ -222,11 +239,11 @@ fun ChatMessageRow(
     onCancel: () -> Unit = {}
 ) {
     Box(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
     ) {
     Column(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .padding(vertical = 12.dp)
     ) {
@@ -258,30 +275,17 @@ fun ChatMessageRow(
             timestamp = msg.timestamp,
             isUser = false,
             isMarkdown = true,
+            modifier = modifier,
             onClick = {
                 copyToClipboard(context = context, text = msg.answer)
             }
         )
 
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = modifier.height(8.dp))
 
 
     }
-        if (showAlertDialog) {
-            Toast.makeText(context, "Delete", Toast.LENGTH_SHORT).show()
-//            showAlertDialog(
-//                onDismissRequest = {
-//                    onDismiss()
-//                },
-//                onConfirm = {
-//                    onConfirm()
-//                },
-//                onCancel = {
-//                    onCancel()
-//                },
-//                sessionToDelete = session?.sessionId ?: null
-//            )
-        }
+
 }
 }
 
@@ -292,7 +296,7 @@ fun ElevatedCardExample(modifier: Modifier = Modifier, image : Painter = painter
         elevation = CardDefaults.cardElevation(
             defaultElevation = 6.dp
         ),
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .padding(end = 15.dp, start = 15.dp)
     ) {

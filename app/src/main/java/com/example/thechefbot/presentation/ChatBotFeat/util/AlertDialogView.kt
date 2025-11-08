@@ -10,55 +10,31 @@ import androidx.compose.runtime.Composable
 import com.example.thechefbot.presentation.ChatBotFeat.model.RecipeViewModel
 
 @Composable
-fun showAlertDialog(
-    onDismissRequest : () -> Unit
-    , sessionToDelete: Int?
-    , onConfirm: () -> Unit,
-    onCancel: () -> Unit,) {
-    AlertDialog(
-        onDismissRequest = {
-            onDismissRequest()
-//            showDeleteDialog = false
-//            sessionToDelete = null
-        },
+fun ConfirmDeleteDialog(
+    sessionToDelete: Int?,
+    onDismissRequest: () -> Unit,
+    onConfirm: () -> Unit,
+    onCancel: () -> Unit
+) {
+
+    val isDeleteAll = sessionToDelete == null || sessionToDelete == 0
+    androidx.compose.material3.AlertDialog(
+        onDismissRequest = onDismissRequest,
         title = { Text("Delete Chat?") },
         text = {
             Text(
-                if (sessionToDelete == null)
+                if (isDeleteAll) {
                     "Are you sure you want to delete all chat sessions?"
-                else
+                } else{
                     "Are you sure you want to delete this chat session?"
+                }
             )
         },
         confirmButton = {
-            Button(
-                onClick = {
-                    onConfirm()
-//                    if (sessionToDelete != null) {
-//                        viewModel.deleteSession(sessionToDelete!!)
-//                    } else {
-//                        viewModel.deleteAllSessions()
-//                    }
-//                    showDeleteDialog = false
-//                    sessionToDelete = null
-                },
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.error
-                )
-            ) {
-                Text("Delete")
-            }
+            Button(onClick = onConfirm, colors = ButtonDefaults.buttonColors(
+                containerColor = MaterialTheme.colorScheme.error
+            )) { Text("Delete") }
         },
-        dismissButton = {
-            TextButton(
-                onClick = {
-                    onCancel()
-//                    showDeleteDialog = false
-//                    sessionToDelete = null
-                }
-            ) {
-                Text("Cancel")
-            }
-        }
+        dismissButton = { TextButton(onClick = onCancel) { Text("Cancel") } }
     )
 }

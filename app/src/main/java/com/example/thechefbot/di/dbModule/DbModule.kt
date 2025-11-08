@@ -7,8 +7,10 @@ import com.example.thechefbot.presentation.AuthFeat.model.LoginViewModel
 import com.example.thechefbot.presentation.ChatBotFeat.model.ChatRepository
 import com.example.thechefbot.presentation.ChatBotFeat.model.RecipeViewModel
 import com.example.thechefbot.presentation.ChatBotFeat.model.SessionPrefs
+import com.example.thechefbot.presentation.ChatBotFeat.model.ThemePrefs
 import com.example.thechefbot.presentation.SettingsFeat.model.SettingsViewModel
 import com.example.thechefbot.presentation.SettingsFeat.model.UserRepository
+import org.koin.android.ext.koin.androidContext
 import org.koin.core.module.dsl.singleOf
 import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.module
@@ -36,6 +38,8 @@ val provideRepositoryModule = module {
 
 val provideSessionPrefsModule = module {
     single { SessionPrefs(get()) }
+        single { ThemePrefs(androidContext()) }
+
 }
 
 val provideViewModelModule = module {

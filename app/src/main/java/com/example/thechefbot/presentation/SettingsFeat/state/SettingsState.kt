@@ -14,6 +14,7 @@ data class SettingsState(
     val errorMessage : String = "",
     val successMessage : String = "",
     val isEditable : Boolean = false,
-    val onBackPressed: Boolean = false
+    val onBackPressed: Boolean = false,
+    val isDark : Boolean = false
 
 )

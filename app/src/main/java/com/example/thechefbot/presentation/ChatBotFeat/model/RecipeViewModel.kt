@@ -499,13 +499,17 @@ class RecipeViewModel(
                 updateSelectedImage(event.imageUri)
             }
             is ChefScreenEvents.UpdateShowDialogStatus -> {
-                updateShowDeleteDialog(event.status, event.sessionToDelete)
+                updateShowDeleteDialog(event.status, event?.sessionToDelete ?: null)
+                println(chefUiState.value.showDeleteDialog)
+                println(chefUiState.value.sessionToDelete)
             }
             is ChefScreenEvents.UpdateSessionToDelete -> {
                 updateSessionToDelete(event.sessionId!!)
             }
             is ChefScreenEvents.ResetSessionToDelete -> {
                 resetSessionToDelete()
+                println(chefUiState.value.showDeleteDialog)
+                println(chefUiState.value.sessionToDelete)
             }
             is ChefScreenEvents.GenerateRecipe -> {
                 sendPrompt(event.sessionId, event.prompt)

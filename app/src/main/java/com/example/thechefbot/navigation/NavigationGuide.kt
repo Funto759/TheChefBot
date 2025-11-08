@@ -28,7 +28,7 @@ fun NavigationGuide(navController: NavHostController
     val status by rememberSaveable { mutableStateOf(false) }
 
     val viewModel = koinViewModel<LoginViewModel>()
-    val authStatus by viewModel.authStatus.collectAsStateWithLifecycle()
+    val authStatus by viewModel.loginUiState.collectAsStateWithLifecycle()
 
     val startDestination  = when{
         authStatus.unAuthenticated -> Routes.Login

@@ -50,8 +50,12 @@ fun DrawerContentView(
     showDeleteDialog: () -> Unit,
     allSessions: List<ChatSession>,
     sessionToDelete: (Int?) -> Unit,
+    sessionToDeleteInt : Int?,
     onItemClicked : (Int) -> Unit,
-    activeSessionId: Int?
+    activeSessionId: Int?,
+    onDismiss: () -> Unit = {},
+    onConfirm: () -> Unit = {},
+    onCancel: () -> Unit = {}
 ) {
     Box(modifier = modifier
         .padding(horizontal = 16.dp)) {
@@ -59,7 +63,7 @@ fun DrawerContentView(
             modifier = modifier
                 .verticalScroll(rememberScrollState())
         ) {
-            Spacer(Modifier.height(12.dp))
+            Spacer(modifier.height(12.dp))
 
             IconButton(onClick = {
                 expandDrawer()
@@ -161,19 +165,24 @@ fun DrawerContentView(
                     modifier = modifier,
                     session = session,
                     allSessions = allSessions,
-                    sessionToDelete = { sessionToDelete(it) },
+                    sessionToDelete = sessionToDelete,
                     activeSessionId = activeSessionId,
-                    onItemClicked = {
-                        onItemClicked(it)
-                    }
+                    onItemClicked = onItemClicked
                 )
             }
             Spacer(modifier.height(12.dp))
+
+            if (showDeleteDialogStatus) {
+                ConfirmDeleteDialog(
+                    sessionToDelete = sessionToDeleteInt,
+                    onDismissRequest = onDismiss,
+                    onConfirm = onConfirm,
+                    onCancel = onCancel
+                )
+            }
         }
 
-        if (showDeleteDialogStatus){
-            Toast.makeText(context, "Delete", Toast.LENGTH_SHORT).show()
-        }
+
     }
 }
 

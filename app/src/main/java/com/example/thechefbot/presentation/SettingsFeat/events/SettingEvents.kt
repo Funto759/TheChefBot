@@ -17,4 +17,8 @@ sealed interface SettingEvents {
     data class OnBackPressed(val onBackPressed : Boolean) : SettingEvents
 
     data object DeleteLastSession : SettingEvents
+
+    data class ToggleTheme(val enabled : Boolean) : SettingEvents
+
+
 }

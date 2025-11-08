@@ -34,6 +34,7 @@ import androidx.navigation.NavHostController
 import com.example.thechefbot.navigation.Routes
 import com.example.thechefbot.presentation.AuthFeat.events.LoginEvents
 import com.example.thechefbot.presentation.AuthFeat.model.LoginViewModel
+import com.example.thechefbot.presentation.SettingsFeat.events.SettingEvents
 import com.example.thechefbot.presentation.SettingsFeat.util.SettingsItemView
 import com.example.thechefbot.presentation.SettingsFeat.util.SettingsSwitchItem
 import com.example.thechefbot.presentation.SettingsFeat.util.SettingsTittleView
@@ -70,9 +71,9 @@ fun SettingsMainScreen(navHostController: NavHostController,onSignOut : (Boolean
         email = profileUiState.email,
         navHostController = navHostController,
         pushNotificationsEnabled = pushNotificationsEnabled,
-        onPushNotificationsToggle = { pushNotificationsEnabled = !pushNotificationsEnabled },
-        darkModeEnabled = darkModeEnabled,
-        onDarkModeToggle = { darkModeEnabled = !darkModeEnabled },
+        onPushNotificationsToggle = { pushNotificationsEnabled = it },
+        darkModeEnabled = profileUiState.isDark,
+        onDarkModeToggle = { settingsViewModel.handleIntents(SettingEvents.ToggleTheme(it)) },
         onSignOutClick = { viewModel.handleIntents(LoginEvents.SignOut(context = context)) },
         onBackClick = { navHostController.popBackStack() },
         onUserProfileClick = {navHostController.navigate(Routes.UserProfile)}
@@ -86,9 +87,9 @@ fun SettingMainUi(
     email: String,
     navHostController: NavHostController,
     pushNotificationsEnabled: Boolean,
-    onPushNotificationsToggle: () -> Unit={},
+    onPushNotificationsToggle: (Boolean) -> Unit={},
     darkModeEnabled: Boolean,
-    onDarkModeToggle: () -> Unit={},
+    onDarkModeToggle: (Boolean) -> Unit={},
     onSignOutClick: () -> Unit={},
     onBackClick: () -> Unit={},
     onUserProfileClick: () -> Unit ={}
@@ -147,10 +148,10 @@ fun SettingsContent(
     email: String,
     navHostController: NavHostController,
     pushNotificationsEnabled: Boolean,
-    onPushNotificationsToggle: () -> Unit,
+    onPushNotificationsToggle: (Boolean) -> Unit,
     darkModeEnabled: Boolean,
     onUserProfileClick: () -> Unit,
-    onDarkModeToggle: () -> Unit,
+    onDarkModeToggle: (Boolean) -> Unit,
     onSignOutClick: () -> Unit
 ) {
     LazyColumn(

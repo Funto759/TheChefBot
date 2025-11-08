@@ -18,12 +18,15 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.composed
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.drawWithCache
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
@@ -96,41 +99,46 @@ fun Modifier.shimmerLoading(
 }
 
 
-@Composable
-fun Modifier.shimmer(cornerRadius: Dp = 10.dp): Modifier {
+fun Modifier.shimmer(
+    cornerRadius: Dp = 10.dp,
+    shimmerAlpha: Float = 0.6f,
+    durationMillis: Int = 1600
+): Modifier = composed {
     val shimmerColors = listOf(
-        Color.LightGray.copy(alpha = 0.3f),
-        Color.White.copy(alpha = 0.6f),
-        Color.LightGray.copy(alpha = 0.3f)
+        Color.DarkGray.copy(alpha = 0.30f),
+        colorResource(R.color.orange).copy(alpha = 0.85f),
+        Color.DarkGray.copy(alpha = 0.30f)
     )
 
-    val transition = rememberInfiniteTransition(label = "Shimmer")
-    val translateAnim by transition.animateFloat(
-        initialValue = -400f,
-        targetValue = 1200f,
+    val transition = rememberInfiniteTransition(label = "shimmer")
+    val offsetX by transition.animateFloat(
+        initialValue = -800f,
+        targetValue = 800f,
         animationSpec = infiniteRepeatable(
-            animation = tween(
-                durationMillis = 1600, // slower = smoother
-                easing = FastOutSlowInEasing // smoother easing
-            )
+            animation = tween(durationMillis = durationMillis, easing = FastOutSlowInEasing)
         ),
-        label = "Translate"
+        label = "offsetX"
     )
 
-    return this.drawWithCache {
+    val radiusPx = with(LocalDensity.current) { cornerRadius.toPx() }
+
+    drawWithContent {
+        // draw original child first
+        drawContent()
+
+        // build a wide diagonal brush that sweeps across the child’s bounds
         val brush = Brush.linearGradient(
             colors = shimmerColors,
-            start = Offset(translateAnim, 0f),
-            // wider gradient
-            end = Offset(translateAnim + size.width / 1.5f, size.height)
+            start = Offset(offsetX, 0f),
+            end = Offset(offsetX + size.width / 1.5f, size.height)
         )
-        val cornerPx = cornerRadius.toPx()
-        onDrawWithContent {
-            drawRoundRect(
-                brush = brush,
-                cornerRadius = CornerRadius(cornerPx, cornerPx),
-                size = size
-            )
-        }
+
+        // overlay on top of the content
+        drawRoundRect(
+            brush = brush,
+            cornerRadius = CornerRadius(radiusPx, radiusPx),
+            size = size,
+            alpha = shimmerAlpha
+        )
     }
 }

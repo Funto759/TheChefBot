@@ -19,6 +19,7 @@ generativeai = "0.9.0"
 room = "2.6.1"
 core-splashscreen="1.0.1"
 material3 = "1.4.0"
+datastoreCore = "1.1.7"
 
 
 [libraries]
@@ -48,6 +49,7 @@ splashscreen={group= "androidx.core",name="core-splashscreen",version.ref="core-
 firebase-firestore-ktx = { group = "com.google.firebase", name = "firebase-firestore-ktx", version.ref = "firebaseFirestoreKtx" }
 firebase-firestore = { group = "com.google.firebase", name = "firebase-firestore", version.ref = "firebaseFirestore" }
 material3 = { group = "androidx.compose.material3", name = "material3", version.ref = "material3" }
+androidx-datastore-core = { group = "androidx.datastore", name = "datastore-core", version.ref = "datastoreCore" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

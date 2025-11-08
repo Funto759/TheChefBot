@@ -8,6 +8,8 @@ import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.DrawerState
 import androidx.compose.material3.DrawerValue
@@ -19,7 +21,6 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberCoroutineScope
@@ -48,12 +49,10 @@ import com.example.thechefbot.presentation.ChatBotFeat.data.ChatSession
 import com.example.thechefbot.presentation.ChatBotFeat.dummy.dummyMessages
 import com.example.thechefbot.presentation.ChatBotFeat.dummy.dummySessions
 import com.example.thechefbot.presentation.ChatBotFeat.state.ChefUiState
-import com.example.thechefbot.presentation.SettingsFeat.model.SettingsViewModel
 import com.example.thechefbot.ui.theme.TheChefBotTheme
 import com.example.thechefbot.util.launchCamera
 import com.example.thechefbot.util.launchPhotoPicker
 import com.example.thechefbot.util.saveImageToInternalStorage
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 
@@ -70,6 +69,7 @@ fun ChatBotScreen(modifier: Modifier = Modifier, navHostController: NavHostContr
     val keyboardController = LocalSoftwareKeyboardController.current
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
+    val listState = rememberLazyListState()
 
     val photoPicker = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickVisualMedia(),
@@ -102,6 +102,7 @@ fun ChatBotScreen(modifier: Modifier = Modifier, navHostController: NavHostContr
 
     ChatBotMainScreen(
         modifier = Modifier,
+        listState = listState,
         email = chefUiState.userEmail,
         drawerState = drawerState,
         allSessions = allSessions,
@@ -128,12 +129,12 @@ fun ChatBotScreen(modifier: Modifier = Modifier, navHostController: NavHostContr
             navHostController.navigate(Routes.Profile)
         },
         showDeleteDialog = {
-            viewModel.handleEvent(ChefScreenEvents.DeleteAllSessions)
-//                viewModel.handleEvent(ChefScreenEvents.UpdateShowDialogStatus(true,null))
+//            viewModel.handleEvent(ChefScreenEvents.DeleteAllSessions)
+                viewModel.handleEvent(ChefScreenEvents.UpdateShowDialogStatus(true,null))
         },
         sessionToDelete = {
-            viewModel.handleEvent(ChefScreenEvents.DeleteSession(it))
-//                   viewModel.handleEvent(ChefScreenEvents.UpdateShowDialogStatus(true, it))
+//            viewModel.handleEvent(ChefScreenEvents.DeleteSession(it))
+                   viewModel.handleEvent(ChefScreenEvents.UpdateShowDialogStatus(true, it))
         },
         selectedImages = chefUiState.selectedImages,
         loading = chefUiState.loading,
@@ -141,6 +142,10 @@ fun ChatBotScreen(modifier: Modifier = Modifier, navHostController: NavHostContr
         session = session,
         onSendClicked = {
             handleSendClick(viewModel, chefUiState, context, keyboardController)
+            scope.launch {
+                val lastIndex = maxOf(0, listState.layoutInfo.totalItemsCount - 1)
+                listState.animateScrollToItem(lastIndex)
+            }
         },
         onValueChange = {
             viewModel.handleEvent(ChefScreenEvents.UpdatePrompt(it))
@@ -167,8 +172,8 @@ fun ChatBotScreen(modifier: Modifier = Modifier, navHostController: NavHostContr
             viewModel.handleEvent(ChefScreenEvents.ToggleSettingsMenuExpanded)
         },
         onDeleteClicked = {
-            viewModel.handleEvent(ChefScreenEvents.DeleteSession(chefUiState.activeSessionId))
-//                        viewModel.handleEvent(ChefScreenEvents.UpdateShowDialogStatus(true,chefUiState.activeSessionId))
+//            viewModel.handleEvent(ChefScreenEvents.DeleteSession(chefUiState.activeSessionId))
+            viewModel.handleEvent(ChefScreenEvents.UpdateShowDialogStatus(true,chefUiState.activeSessionId))
         },
         onToggleTheme = {
 
@@ -186,7 +191,8 @@ fun ChatBotScreen(modifier: Modifier = Modifier, navHostController: NavHostContr
             viewModel.handleEvent(ChefScreenEvents.ResetSessionToDelete)
         },
         onConfirmAlertDialog = {
-            if (chefUiState.sessionToDelete != null) {
+            val id = chefUiState.sessionToDelete
+            if (id != null && id != 0) {
                 viewModel.handleEvent(ChefScreenEvents.DeleteSession(chefUiState.sessionToDelete!!))
             } else {
                 viewModel.handleEvent(ChefScreenEvents.DeleteAllSessions)
@@ -201,6 +207,7 @@ fun ChatBotScreen(modifier: Modifier = Modifier, navHostController: NavHostContr
         error = chefUiState.error,
         errorState = chefUiState.errorState,
         showDialogStatus = chefUiState.showDeleteDialog,
+        sessionToDeleteInt = chefUiState.sessionToDelete
     )
 
 }
@@ -208,6 +215,7 @@ fun ChatBotScreen(modifier: Modifier = Modifier, navHostController: NavHostContr
 @Composable
 fun ChatBotMainScreen(
     modifier: Modifier = Modifier,
+    listState: LazyListState,
     allSessions: List<ChatSession>,
     email : String,
     activeSessionId: Int?,
@@ -216,6 +224,7 @@ fun ChatBotMainScreen(
     showDialogStatus: Boolean = false,
     onSettingsClicked: () -> Unit ={},
     sessionToDelete: (Int?) -> Unit ={},
+    sessionToDeleteInt : Int?,
     drawerState: DrawerState,
     expandDrawer: () -> Unit ={},
     newChat:() -> Unit ={},
@@ -256,9 +265,14 @@ fun ChatBotMainScreen(
         onSettingsClicked = onSettingsClicked,
         showDeleteDialog = showDeleteDialog,
         sessionToDelete = sessionToDelete,
+        sessionToDeleteInt = sessionToDeleteInt,
+        onConfirm = onConfirmAlertDialog,
+        onCancel = onCancelAlertDialog,
+        onDismiss = onDismissAlertDialog,
         content = {
             MainScreen(
                 modifier = modifier,
+                listState = listState,
                 selectedImages = selectedImages,
                 loading = loading,
                 prompt = prompt,
@@ -299,11 +313,15 @@ fun ModalDrawerView(modifier: Modifier = Modifier,
                     showDeleteDialog: () -> Unit,
                     onSettingsClicked: () -> Unit,
                     sessionToDelete: (Int?) -> Unit,
+                    sessionToDeleteInt : Int?,
                     drawerState: DrawerState,
                     expandDrawer: () -> Unit,
                     newChat:() -> Unit,
                     onItemClicked : (Int) -> Unit,
-                    content: @Composable (() -> Unit)) {
+                    content: @Composable (() -> Unit),
+                    onDismiss: () -> Unit = {},
+                    onConfirm: () -> Unit = {},
+                    onCancel: () -> Unit = {}) {
     ModalNavigationDrawer(
         drawerContent = {
             ModalDrawerSheet {
@@ -320,7 +338,11 @@ fun ModalDrawerView(modifier: Modifier = Modifier,
                     allSessions = allSessions,
                     sessionToDelete = { sessionToDelete(it) },
                     activeSessionId = activeSessionId,
-                    onItemClicked = onItemClicked
+                    onItemClicked = onItemClicked,
+                    onCancel = onCancel,
+                    onDismiss = onDismiss,
+                    onConfirm = onConfirm,
+                    sessionToDeleteInt = sessionToDeleteInt
                 )
             }
         },
@@ -336,6 +358,7 @@ fun ModalDrawerView(modifier: Modifier = Modifier,
 fun MainScreen(modifier: Modifier = Modifier,
                context: Context,
                session: ChatSession? = null,
+               listState: LazyListState,
                selectedImages: Uri? = null,
                messages: List<ChatMessage>,
                loading: Boolean = false,
@@ -412,6 +435,7 @@ fun MainScreen(modifier: Modifier = Modifier,
             messages = messages,
             showDeleteDialog= showDeleteDialog,
             errorState = errorState,
+            listState = listState,
             error = error,
             loading = loading,
             context = context,
@@ -434,24 +458,30 @@ fun ConversationArea(
     prompt: String = "",
     errorState: Boolean = false,
     error: String = "",
+    listState: LazyListState,
     context: Context,
     session: ChatSession? = null,
     onDismissAlertDialog: () -> Unit = {},
     onConfirmAlertDialog: () -> Unit = {},
     onCancelAlertDialog: () -> Unit = {}
 ) {
-    if (messages.isEmpty() && loading) {
+    if (messages.isEmpty() && !loading) {
         InitialConversationScreen(
             modifier = modifier,
             paddingValues = paddingValues,
             session = session,
-            messages = messages
+            messages = messages,
+            showDeleteDialog = showDeleteDialog,
+        onDismiss = onDismissAlertDialog
+        , onConfirm = onConfirmAlertDialog
+        , onCancel = onCancelAlertDialog
         )
     } else {
         MessagesList(
             modifier = modifier,
             paddingValues = paddingValues,
             messages = messages,
+            listState = listState,
             context = context,
             errorState = errorState,
             error = error,
@@ -459,15 +489,9 @@ fun ConversationArea(
             prompt = prompt,
             showDeleteDialog = showDeleteDialog,
             session = session,
-            onDismiss = {
-                onDismissAlertDialog()
-            }
-            ,onConfirm = {
-                onConfirmAlertDialog()
-            }
-            ,onCancel = {
-                onCancelAlertDialog()
-            }
+            onDismiss = onDismissAlertDialog
+            , onConfirm = onConfirmAlertDialog
+            , onCancel = onCancelAlertDialog
         )
     }
 }
@@ -550,23 +574,24 @@ private fun handleSendClick(
 @Preview
 @Composable
 fun previewChatBotMainScreen(){
-    TheChefBotTheme {
+    TheChefBotTheme(darkTheme = true) {
         ChatBotMainScreen(
             modifier = Modifier,
             allSessions = dummySessions,
             email = "",
             activeSessionId = 3,
+            sessionToDeleteInt = null,
             session = ChatSession(sessionId = 1, title = "Funto", lastUsedTimeStamp = 1L, email = "user@example.com"),
             context = LocalContext.current,
             showDeleteDialog = {},
-            showDialogStatus = false,
+            showDialogStatus = true,
             onSettingsClicked = {},
             sessionToDelete = {},
-            drawerState = rememberDrawerState(initialValue = DrawerValue.Closed),
+            drawerState = rememberDrawerState(initialValue = DrawerValue.Open),
             expandDrawer = {},
             newChat = {},
             onItemClicked = {},
-            messages = dummyMessages,
+            messages = emptyList(),
             loading = false,
             prompt = "",
             errorState = false,
@@ -582,7 +607,8 @@ fun previewChatBotMainScreen(){
             onSendClicked = {},
             onClick = {},
             expanded = false,
-            settingsExpandedStatus = false
+            settingsExpandedStatus = false,
+            listState = rememberLazyListState()
         )
     }
 }

@@ -38,7 +38,7 @@ fun TopChefBar(
     text: String?) {
     CenterAlignedTopAppBar(
         title = {
-            Text(text = if (text.isNullOrEmpty()) "Recipe Generator" else text, color = colorResource(R.color.pink))
+            Text(text = if (text.isNullOrEmpty()) "Recipe Generator" else text, color = colorResource(R.color.orange))
         },
         actions = {
             IconButton(onClick = {
