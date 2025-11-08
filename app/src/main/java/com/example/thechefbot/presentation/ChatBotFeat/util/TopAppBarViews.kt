@@ -5,6 +5,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.Cancel
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.DriveFileRenameOutline
 import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.InvertColors
 import androidx.compose.material.icons.filled.Menu
@@ -33,12 +34,12 @@ fun TopChefBar(
     ,expanded: Boolean,
     onSettingsClicked: () -> Unit,
     onDeleteClicked : () -> Unit,
-    onToggleTheme :() -> Unit,
+    onToggleRenameDialog :() -> Unit,
     toggleExpanded: () -> Unit,
     text: String?) {
     CenterAlignedTopAppBar(
         title = {
-            Text(text = if (text.isNullOrEmpty()) "Recipe Generator" else text, color = colorResource(R.color.orange))
+            Text(text = if (text.isNullOrEmpty()) "New Chat" else text, color = colorResource(R.color.orange))
         },
         actions = {
             IconButton(onClick = {
@@ -80,12 +81,10 @@ fun TopChefBar(
                     }
                 )
                 DropdownMenuItem(
-                    text = { Text("Toggle Mode") },
-                    onClick = {
-                        onToggleTheme()
-                    },
+                    text = { Text("Rename Chat") },
+                    onClick = onToggleRenameDialog,
                     leadingIcon = {
-                        Icon(Icons.Default.InvertColors, contentDescription = "Localized description"
+                        Icon(Icons.Default.DriveFileRenameOutline, contentDescription = "Localized description"
                         ,modifier = modifier.padding(5.dp),tint = colorResource(R.color.orange))
                     }
                 )

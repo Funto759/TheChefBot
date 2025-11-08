@@ -177,7 +177,7 @@ fun DrawerContentView(
                     sessionToDelete = sessionToDeleteInt,
                     onDismissRequest = onDismiss,
                     onConfirm = onConfirm,
-                    onCancel = onCancel
+                    onCancel = onCancel,
                 )
             }
         }

@@ -58,7 +58,7 @@ fun EditableView(
         visualTransformation = state,
         keyboardOptions = keyboardOptions,
         colors = OutlinedTextFieldDefaults.colors(
-            focusedTextColor = Color.White,
+            focusedTextColor = Color.Black,
             focusedLabelColor = colorResource(R.color.orange),
             unfocusedTextColor = Color.White,
             focusedBorderColor = colorResource(R.color.orange),

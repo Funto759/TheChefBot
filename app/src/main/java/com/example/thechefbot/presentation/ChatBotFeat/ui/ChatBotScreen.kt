@@ -108,6 +108,9 @@ fun ChatBotScreen(modifier: Modifier = Modifier, navHostController: NavHostContr
         allSessions = allSessions,
         activeSessionId = chefUiState.activeSessionId,
         context = context,
+        onToggleRenameDialog = {
+            viewModel.handleEvent(ChefScreenEvents.UpdateShowRenameDialogStatus(true))
+        },
         expandDrawer = {
             scope.launch {
                 if (drawerState.isClosed) {
@@ -175,9 +178,6 @@ fun ChatBotScreen(modifier: Modifier = Modifier, navHostController: NavHostContr
 //            viewModel.handleEvent(ChefScreenEvents.DeleteSession(chefUiState.activeSessionId))
             viewModel.handleEvent(ChefScreenEvents.UpdateShowDialogStatus(true,chefUiState.activeSessionId))
         },
-        onToggleTheme = {
-
-        },
         onClick = {
             scope.launch {
                 if (drawerState.isClosed) {
@@ -201,13 +201,27 @@ fun ChatBotScreen(modifier: Modifier = Modifier, navHostController: NavHostContr
         onCancelAlertDialog = {
             viewModel.handleEvent(ChefScreenEvents.ResetSessionToDelete)
         },
+        onDismissRename = {
+            viewModel.handleEvent(ChefScreenEvents.UpdateShowRenameDialogStatus(false))
+        },
+        onConfirmRename = {
+            viewModel.handleEvent(ChefScreenEvents.RenameChat)
+        },
+        onCancelRename = {
+            viewModel.handleEvent(ChefScreenEvents.UpdateShowRenameDialogStatus(false))
+        },
+        onValueChangeRename = {
+            viewModel.handleEvent(ChefScreenEvents.UpdateNewTitle(it))
+        },
         expanded = chefUiState.expanded,
         settingsExpandedStatus = chefUiState.settingsToggleExpanded,
         messages = messages,
         error = chefUiState.error,
         errorState = chefUiState.errorState,
         showDialogStatus = chefUiState.showDeleteDialog,
-        sessionToDeleteInt = chefUiState.sessionToDelete
+        sessionToDeleteInt = chefUiState.sessionToDelete,
+        renameText = chefUiState.newTitle,
+        showRenameDialog = chefUiState.showRenameDialog
     )
 
 }
@@ -241,7 +255,7 @@ fun ChatBotMainScreen(
     toggleExpanded: () -> Unit = {},
     settingsToggleExpanded: () -> Unit = {},
     onDeleteClicked : () -> Unit ={},
-    onToggleTheme :() -> Unit ={},
+    onToggleRenameDialog :() -> Unit ={},
     onCancelClicked: () -> Unit ={},
     onValueChange: (String) -> Unit = {},
     onSendClicked: () -> Unit ={},
@@ -249,6 +263,12 @@ fun ChatBotMainScreen(
     onDismissAlertDialog: () -> Unit = {},
     onConfirmAlertDialog: () -> Unit = {},
     onCancelAlertDialog: () -> Unit = {},
+    onDismissRename: () -> Unit = {},
+    onConfirmRename: () -> Unit = {},
+    onCancelRename: () -> Unit = {},
+    onValueChangeRename: (String) -> Unit = {},
+    renameText : String,
+    showRenameDialog : Boolean,
     expanded: Boolean,
     settingsExpandedStatus: Boolean = false,
 ){
@@ -286,7 +306,7 @@ fun ChatBotMainScreen(
                 settingsToggleExpanded = settingsToggleExpanded,
                 onSettingsClicked = onSettingsClicked,
                 onDeleteClicked = onDeleteClicked,
-                onToggleTheme = onToggleTheme,
+                onToggleRenameDialog = onToggleRenameDialog,
                 onClick = onClick,
                 expanded = expanded,
                 settingsExpandedStatus = settingsExpandedStatus,
@@ -298,6 +318,12 @@ fun ChatBotMainScreen(
                 onDismissAlertDialog = onDismissAlertDialog,
                 onConfirmAlertDialog = onConfirmAlertDialog,
                 onCancelAlertDialog = onCancelAlertDialog,
+                onDismissRename = onDismissRename,
+                onConfirmRename = onConfirmRename,
+                onCancelRename = onCancelRename,
+                onValueChangeRename = onValueChangeRename,
+                renameText = renameText,
+                showRenameDialog = showRenameDialog
             )
         }
     )
@@ -372,7 +398,7 @@ fun MainScreen(modifier: Modifier = Modifier,
                settingsToggleExpanded: () -> Unit = {},
                onSettingsClicked: () -> Unit,
                onDeleteClicked : () -> Unit,
-               onToggleTheme :() -> Unit,
+               onToggleRenameDialog :() -> Unit,
                onCancelClicked: () -> Unit,
                onValueChange: (String) -> Unit = {},
                onSendClicked: () -> Unit,
@@ -380,6 +406,12 @@ fun MainScreen(modifier: Modifier = Modifier,
                onDismissAlertDialog: () -> Unit = {},
                onConfirmAlertDialog: () -> Unit = {},
                onCancelAlertDialog: () -> Unit = {},
+               onDismissRename: () -> Unit = {},
+               onConfirmRename: () -> Unit = {},
+               onCancelRename: () -> Unit = {},
+               onValueChangeRename: (String) -> Unit = {},
+               renameText : String,
+               showRenameDialog : Boolean,
                expanded: Boolean,
                settingsExpandedStatus: Boolean = false,
                ) {
@@ -404,9 +436,7 @@ fun MainScreen(modifier: Modifier = Modifier,
                 onDeleteClicked = {
                     onDeleteClicked()
                 },
-                onToggleTheme = {
-                    onToggleTheme()
-                },
+                onToggleRenameDialog =  onToggleRenameDialog,
                 onClick = {
                     onClick()
                 }
@@ -442,7 +472,13 @@ fun MainScreen(modifier: Modifier = Modifier,
             session = session,
             onDismissAlertDialog = onDismissAlertDialog,
             onConfirmAlertDialog = onConfirmAlertDialog,
-            onCancelAlertDialog =onCancelAlertDialog
+            onCancelAlertDialog =onCancelAlertDialog,
+            onDismissRename = onDismissRename,
+            onConfirmRename = onConfirmRename,
+            onCancelRename = onCancelRename,
+            onValueChange = onValueChangeRename,
+            renameText = renameText,
+            showRenameDialog = showRenameDialog
         )
     }
 }
@@ -463,7 +499,13 @@ fun ConversationArea(
     session: ChatSession? = null,
     onDismissAlertDialog: () -> Unit = {},
     onConfirmAlertDialog: () -> Unit = {},
-    onCancelAlertDialog: () -> Unit = {}
+    onCancelAlertDialog: () -> Unit = {},
+    showRenameDialog : Boolean,
+    onDismissRename: () -> Unit = {},
+    onConfirmRename: () -> Unit = {},
+    onCancelRename: () -> Unit = {},
+    onValueChange: (String) -> Unit = {},
+    renameText : String
 ) {
     if (messages.isEmpty() && !loading) {
         InitialConversationScreen(
@@ -475,6 +517,12 @@ fun ConversationArea(
         onDismiss = onDismissAlertDialog
         , onConfirm = onConfirmAlertDialog
         , onCancel = onCancelAlertDialog
+            ,showRenameDialog = showRenameDialog
+            , onDismissRename = onDismissRename
+            , onConfirmRename = onConfirmRename
+            , onCancelRename = onCancelRename
+            ,onValueChange = onValueChange,
+            renameText = renameText
         )
     } else {
         MessagesList(
@@ -487,11 +535,18 @@ fun ConversationArea(
             error = error,
             loading = loading,
             prompt = prompt,
+            showRenameDialog = showRenameDialog,
             showDeleteDialog = showDeleteDialog,
             session = session,
             onDismiss = onDismissAlertDialog
             , onConfirm = onConfirmAlertDialog
             , onCancel = onCancelAlertDialog
+            , onDismissRename = onDismissRename
+            , onConfirmRename = onConfirmRename
+            , onCancelRename = onCancelRename
+            ,onValueChange = onValueChange,
+            renameText = renameText
+
         )
     }
 }
@@ -584,10 +639,10 @@ fun previewChatBotMainScreen(){
             session = ChatSession(sessionId = 1, title = "Funto", lastUsedTimeStamp = 1L, email = "user@example.com"),
             context = LocalContext.current,
             showDeleteDialog = {},
-            showDialogStatus = true,
+            showDialogStatus = false,
             onSettingsClicked = {},
             sessionToDelete = {},
-            drawerState = rememberDrawerState(initialValue = DrawerValue.Open),
+            drawerState = rememberDrawerState(initialValue = DrawerValue.Closed),
             expandDrawer = {},
             newChat = {},
             onItemClicked = {},
@@ -601,14 +656,16 @@ fun previewChatBotMainScreen(){
             toggleExpanded = {},
             settingsToggleExpanded = {},
             onDeleteClicked = {},
-            onToggleTheme = {},
+            onToggleRenameDialog = {},
             onCancelClicked = {},
             onValueChange = {},
             onSendClicked = {},
             onClick = {},
             expanded = false,
             settingsExpandedStatus = false,
-            listState = rememberLazyListState()
+            listState = rememberLazyListState(),
+            renameText = "Funto",
+            showRenameDialog = true
         )
     }
 }

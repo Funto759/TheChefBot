@@ -9,6 +9,7 @@ sealed interface ChefScreenEvents {
 
     data class GenerateRecipeWithImage(val context: Context, val prompt: String, val imageUri: Uri?, val sessionId: Int) : ChefScreenEvents
     data class UpdatePrompt(val prompt: String) : ChefScreenEvents
+    data class UpdateNewTitle(val prompt: String) : ChefScreenEvents
     data object ClearPrompt : ChefScreenEvents
     data object ClearImage : ChefScreenEvents
     data class UpdateSelectedImage(val imageUri: Uri?) : ChefScreenEvents
@@ -21,6 +22,7 @@ sealed interface ChefScreenEvents {
 
 
     data class UpdateShowDialogStatus(val status : Boolean,val sessionToDelete : Int?) : ChefScreenEvents
+    data class UpdateShowRenameDialogStatus(val status : Boolean) : ChefScreenEvents
 
 
     data class OpenSession(val sessionId : Int) : ChefScreenEvents
@@ -32,6 +34,9 @@ sealed interface ChefScreenEvents {
     data class UpdateSessionToDelete(val sessionId : Int?) : ChefScreenEvents
 
     data object ResetSessionToDelete : ChefScreenEvents
+    data object ResetRenameDialog : ChefScreenEvents
+
+    data object RenameChat : ChefScreenEvents
 
     data object ToggleGalleryMenuExpanded : ChefScreenEvents
 

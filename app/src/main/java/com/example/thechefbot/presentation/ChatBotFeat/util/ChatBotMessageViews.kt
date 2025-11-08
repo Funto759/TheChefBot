@@ -50,7 +50,13 @@ fun InitialConversationScreen(
     showDeleteDialog: Boolean = false,
     onDismiss: () -> Unit = {},
     onConfirm: () -> Unit = {},
-    onCancel: () -> Unit = {}
+    onCancel: () -> Unit = {},
+    onDismissRename: () -> Unit = {},
+    onConfirmRename: () -> Unit = {},
+    onCancelRename: () -> Unit = {},
+    onValueChange: (String) -> Unit = {},
+    renameText : String,
+    showRenameDialog: Boolean = false,
 ) {
     Box(modifier = modifier.fillMaxSize()) {
     LazyColumn(
@@ -65,6 +71,17 @@ fun InitialConversationScreen(
             EmptyConversationScreen(modifier = modifier, session = session, messages = messages)
         }
     }
+        if (showRenameDialog) {
+            ChangeTitleDialog(
+                modifier = modifier,
+                value = renameText,
+                onValueChange = onValueChange,
+                onDismissRequest = onDismissRename,
+                onConfirm = onConfirmRename,
+                onCancel = onCancelRename
+            )
+        }
+
         if (showDeleteDialog) {
             ConfirmDeleteDialog(
                 sessionToDelete = session?.sessionId,
@@ -139,13 +156,19 @@ fun MessagesList(
     context: Context,
     listState: LazyListState,
     showDeleteDialog: Boolean = false,
+    showRenameDialog: Boolean = false,
     loading: Boolean = false,
     prompt: String = "",
     errorState: Boolean = false,
     error: String = "",
     onDismiss: () -> Unit = {},
     onConfirm: () -> Unit = {},
-    onCancel: () -> Unit = {}
+    onCancel: () -> Unit = {} ,
+    onDismissRename: () -> Unit = {},
+    onConfirmRename: () -> Unit = {},
+    onCancelRename: () -> Unit = {},
+    onValueChange: (String) -> Unit = {},
+    renameText : String,
 ) {
 
 
@@ -264,6 +287,17 @@ fun MessagesList(
                     tint = Color.DarkGray
                 )
             }
+        }
+
+        if (showRenameDialog) {
+            ChangeTitleDialog(
+                modifier = modifier,
+                value = renameText,
+                onValueChange = onValueChange,
+                onDismissRequest = onDismissRename,
+                onConfirm = onConfirmRename,
+                onCancel = onCancelRename
+            )
         }
 
         if (showDeleteDialog) {

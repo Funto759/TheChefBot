@@ -437,11 +437,28 @@ class RecipeViewModel(
         }
     }
 
+    fun resetRenameDialogStatus(){
+        _chefUiState.update {
+            it.copy(
+                showRenameDialog = false,
+                newTitle = ""
+            )
+        }
+    }
+
     fun updateShowDeleteDialog(status : Boolean, sessionToDelete : Int?){
         _chefUiState.update {
             it.copy(
                 showDeleteDialog = status
                 , sessionToDelete = sessionToDelete
+            )
+        }
+        println("${chefUiState.value.showDeleteDialog} : ${chefUiState.value.sessionToDelete}")
+    }
+    fun updateShowRenameDialog(status : Boolean){
+        _chefUiState.update {
+            it.copy(
+                showRenameDialog = status
             )
         }
         println("${chefUiState.value.showDeleteDialog} : ${chefUiState.value.sessionToDelete}")
@@ -476,6 +493,12 @@ class RecipeViewModel(
         }
     }
 
+    fun updateNewTitle(title: String){
+        _chefUiState.update {
+            it.copy(newTitle = title)
+        }
+    }
+
     private fun requireUserEmailOrReturn(): String? {
         val email = _chefUiState.value.userEmail
         if (email.isBlank()) {
@@ -503,6 +526,9 @@ class RecipeViewModel(
                 println(chefUiState.value.showDeleteDialog)
                 println(chefUiState.value.sessionToDelete)
             }
+            is ChefScreenEvents.UpdateShowRenameDialogStatus -> {
+                updateShowRenameDialog(event.status)
+            }
             is ChefScreenEvents.UpdateSessionToDelete -> {
                 updateSessionToDelete(event.sessionId!!)
             }
@@ -511,6 +537,14 @@ class RecipeViewModel(
                 println(chefUiState.value.showDeleteDialog)
                 println(chefUiState.value.sessionToDelete)
             }
+            is ChefScreenEvents.ResetRenameDialog -> {
+                resetRenameDialogStatus()
+            }
+            is ChefScreenEvents.RenameChat -> {
+                renameSession(chefUiState.value.activeSessionId!!, _chefUiState.value.newTitle)
+                resetRenameDialogStatus()
+            }
+
             is ChefScreenEvents.GenerateRecipe -> {
                 sendPrompt(event.sessionId, event.prompt)
             }
@@ -521,6 +555,10 @@ class RecipeViewModel(
 
             is ChefScreenEvents.UpdatePrompt -> {
                 updatePrompt(event.prompt)
+            }
+
+            is ChefScreenEvents.UpdateNewTitle -> {
+                updateNewTitle(event.prompt)
             }
 
             is ChefScreenEvents.ClearPrompt -> {
