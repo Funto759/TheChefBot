@@ -154,9 +154,7 @@ fun ChatBubble(
 
             if (!loading) {
                 IconButton(
-                    onClick = {
-                        onClick()
-                    },
+                    onClick = onClick,
                     modifier = modifier
                         .size(22.dp)
                         .padding(start = 3.dp, end = 7.dp)

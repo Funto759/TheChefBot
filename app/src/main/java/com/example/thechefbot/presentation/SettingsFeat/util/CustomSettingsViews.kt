@@ -113,7 +113,7 @@ fun SettingsSwitchItem(
                 uncheckedBorderColor = colorResource(R.color.pink),
             ),
             checked = pushNotificationsEnabled,
-            onCheckedChange = { togglePushNotifications(it) }
+            onCheckedChange = togglePushNotifications
         )
     }
 }

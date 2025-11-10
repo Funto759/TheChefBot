@@ -64,10 +64,7 @@ fun EditableView(
             focusedBorderColor = colorResource(R.color.orange),
         ),
         value = value,
-        onValueChange = {
-            onValueChange(it)
-//            viewModel.handleIntents(LoginEvents.UpdateFullName(it))
-        },
+        onValueChange = onValueChange,
         label = {
             Text(
                 text = hint
@@ -76,9 +73,7 @@ fun EditableView(
         trailingIcon = {
             if (isPasswordField){
 
-                    IconButton(onClick = {
-                       togglePasswordVisibility()
-                    }) {
+                    IconButton(onClick = togglePasswordVisibility) {
                         if (passWordVisible) {
                             Icon(
                                 painter = painterResource(id = R.drawable.eye_show_svgrepo_com),

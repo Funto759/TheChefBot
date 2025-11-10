@@ -38,9 +38,7 @@ fun ImagePickerMenu(
     launchCamera: () -> Unit,
     launchPhotoPicker: () -> Unit
 ) {
-    IconButton(onClick = {
-        toggleExpanded()
-    }) {
+    IconButton(onClick = toggleExpanded) {
         if (selectedImages != null) {
             AsyncImage(
                 model = selectedImages,
@@ -57,13 +55,11 @@ fun ImagePickerMenu(
     }
     DropdownMenu(
         expanded = expanded,
-        onDismissRequest = { toggleExpanded() }
+        onDismissRequest = toggleExpanded
     ) {
         DropdownMenuItem(
             text = { Text("Cancel") },
-            onClick = {
-                onCancelClicked()
-            },
+            onClick = onCancelClicked,
             leadingIcon = {
                 Icon(Icons.Default.Cancel, contentDescription = "Localized description",
                     modifier = modifier.padding(5.dp),tint = colorResource(R.color.orange))
@@ -104,9 +100,7 @@ fun PromptInputField(
 ) {
     OutlinedTextField(
         value = if (loading) "" else prompt,
-        onValueChange = {
-            onValueChange(it)
-        },
+        onValueChange = onValueChange,
         label = {
             Text(
                 "Ask me anything...",
@@ -137,9 +131,7 @@ fun SendButton(modifier: Modifier
 ) {
     IconButton(
         modifier = modifier.padding(5.dp),
-        onClick = {
-            onSendClicked()
-        }) {
+        onClick = onSendClicked) {
         Icon(Icons.Filled.Send, contentDescription = "Send message",
             tint  = colorResource(R.color.orange))
     }

@@ -197,15 +197,9 @@ fun MessagesList(
                     showAlertDialog = showDeleteDialog,
                     context = context,
                     session = session,
-                    onDismiss = {
-                        onDismiss()
-                    },
-                    onConfirm = {
-                        onConfirm()
-                    },
-                    onCancel = {
-                        onCancel()
-                    }
+                    onDismiss = onDismiss,
+                    onConfirm = onConfirm,
+                    onCancel = onCancel
                 )
             }
 

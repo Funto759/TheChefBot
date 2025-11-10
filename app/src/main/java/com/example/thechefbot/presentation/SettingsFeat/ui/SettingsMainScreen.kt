@@ -131,7 +131,7 @@ fun SettingsContentScaffold(
                 )
             },
             navigationIcon = {
-                IconButton(onClick = { onBackClick() }) {
+                IconButton(onClick = onBackClick) {
                     Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = orange)
                 }
             }
@@ -165,9 +165,7 @@ fun SettingsContent(
         item {
             SettingsUserDetailsView(
                 email = email,
-                onClick = {
-                    onUserProfileClick()
-                },
+                onClick = onUserProfileClick,
                 painter = painterResource(id = R.drawable.ic_launcher_foreground),
             )
         }

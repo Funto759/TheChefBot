@@ -42,9 +42,7 @@ fun TopChefBar(
             Text(text = if (text.isNullOrEmpty()) "New Chat" else text, color = colorResource(R.color.orange))
         },
         actions = {
-            IconButton(onClick = {
-                toggleExpanded()
-            }) {
+            IconButton(onClick = toggleExpanded) {
                 Icon(
                     imageVector = Icons.Default.Settings,
                     contentDescription = "",
@@ -53,13 +51,11 @@ fun TopChefBar(
             }
             DropdownMenu(
                 expanded = expanded,
-                onDismissRequest = { toggleExpanded() }
+                onDismissRequest = toggleExpanded
             ) {
                 DropdownMenuItem(
                     text = { Text("Settings") },
-                    onClick = {
-                        onSettingsClicked()
-                    },
+                    onClick = onSettingsClicked,
                     leadingIcon = {
                         Icon(
                             imageVector = Icons.Default.Person
@@ -71,10 +67,7 @@ fun TopChefBar(
                 )
                 DropdownMenuItem(
                     text = { Text("Delete Chat") },
-                    onClick = {
-                        onDeleteClicked()
-//                        launchCamera()
-                    },
+                    onClick = onDeleteClicked,
                     leadingIcon = {
                         Icon(Icons.Default.Delete, contentDescription = "Localized description"
                             ,modifier = modifier.padding(5.dp),tint = colorResource(R.color.orange))
@@ -92,7 +85,7 @@ fun TopChefBar(
 
         },
         navigationIcon = {
-            IconButton(onClick = {onClick()}) {
+            IconButton(onClick = onClick) {
                 Icon(
                     imageVector = Icons.Default.Menu,
                     contentDescription = "",

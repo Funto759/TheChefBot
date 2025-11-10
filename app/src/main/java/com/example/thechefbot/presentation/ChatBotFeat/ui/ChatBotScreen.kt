@@ -356,13 +356,11 @@ fun ModalDrawerView(modifier: Modifier = Modifier,
                     email = email,
                     context = context ,
                     expandDrawer = expandDrawer,
-                    showDeleteDialog = { showDeleteDialog() },
-                    onSettingsClicked = {
-                        onSettingsClicked()
-                    },
+                    showDeleteDialog =showDeleteDialog,
+                    onSettingsClicked = onSettingsClicked,
                     newChat = newChat,
                     allSessions = allSessions,
-                    sessionToDelete = { sessionToDelete(it) },
+                    sessionToDelete = sessionToDelete,
                     activeSessionId = activeSessionId,
                     onItemClicked = onItemClicked,
                     onCancel = onCancel,
@@ -427,19 +425,11 @@ fun MainScreen(modifier: Modifier = Modifier,
                 scrollBehavior = scrollBehavior,
                 modifier = modifier,
                 expanded = settingsExpandedStatus,
-                toggleExpanded = {
-                    settingsToggleExpanded()
-                },
-            onSettingsClicked = {
-                onSettingsClicked()
-            },
-                onDeleteClicked = {
-                    onDeleteClicked()
-                },
+                toggleExpanded = settingsToggleExpanded,
+            onSettingsClicked = onSettingsClicked,
+                onDeleteClicked = onDeleteClicked,
                 onToggleRenameDialog =  onToggleRenameDialog,
-                onClick = {
-                    onClick()
-                }
+                onClick = onClick
             )
         },
         bottomBar = {
@@ -575,8 +565,8 @@ fun ChefBottomBar(
                 expanded = expanded,
                 onCancelClicked = onCancelClicked,
                 toggleExpanded,
-                launchCamera = { launchCamera() },
-                launchPhotoPicker = { launchPhotoPicker() }
+                launchCamera = launchCamera,
+                launchPhotoPicker = launchPhotoPicker
             )
             PromptInputField(
                 loading = loading,
