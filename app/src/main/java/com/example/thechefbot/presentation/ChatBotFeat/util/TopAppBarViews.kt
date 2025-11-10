@@ -22,6 +22,7 @@ import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.thechefbot.R
 
@@ -39,7 +40,11 @@ fun TopChefBar(
     text: String?) {
     CenterAlignedTopAppBar(
         title = {
-            Text(text = if (text.isNullOrEmpty()) "New Chat" else text, color = colorResource(R.color.orange))
+            Text(text = if (text.isNullOrEmpty()) "New Chat" else text,
+                color = colorResource(R.color.orange),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
         },
         actions = {
             IconButton(onClick = toggleExpanded) {
