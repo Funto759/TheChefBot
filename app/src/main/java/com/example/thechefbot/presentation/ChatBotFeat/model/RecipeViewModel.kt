@@ -113,6 +113,15 @@ class RecipeViewModel(
         )
 
 
+    fun connectListener(){
+        // start listening immediately if signed in
+        listener = repo.listenCurrentUser { user ->
+            println("User: $user")
+            updateUserEmail(user?.email.orEmpty())
+        }
+    }
+
+
     // call this when you open the chat screen
     fun openSession(sessionId: Int?) {
         _activeSessionId.value = sessionId
@@ -125,7 +134,7 @@ class RecipeViewModel(
 
     }
 
-    // NEW: Create a new chat session
+    //  Create a new chat session
     fun createNewSession(title : String? = null) {
         viewModelScope.launch {
             val email = requireUserEmailOrReturn() ?: return@launch
@@ -145,7 +154,7 @@ class RecipeViewModel(
         }
     }
 
-    // NEW: Delete a session
+    //  Delete a session
     fun deleteSession(sessionId: Int) {
         viewModelScope.launch {
             chatRepository.deleteSession(sessionId)
@@ -157,7 +166,7 @@ class RecipeViewModel(
         }
     }
 
-    // NEW: Delete all sessions
+    //  Delete all sessions
     fun deleteAllSessions() {
         viewModelScope.launch {
             chatRepository.deleteAllSessions(email = _chefUiState.value.userEmail)
@@ -165,10 +174,25 @@ class RecipeViewModel(
         }
     }
 
-    // NEW: Rename a session
+    //  Rename a session
     fun renameSession(sessionId: Int, newTitle: String) {
         viewModelScope.launch {
             chatRepository.renameSession(sessionId, newTitle)
+        }
+    }
+
+
+    fun updateSessionToDelete(sessionId: Int){
+        _chefUiState.update {
+            it.copy(sessionToDelete = sessionId)
+        }
+    }
+
+    fun resetSessionToDelete(){
+        _chefUiState.update {
+            it.copy(sessionToDelete = null,
+                showDeleteDialog = false
+            )
         }
     }
 
@@ -190,33 +214,6 @@ class RecipeViewModel(
         }
     }
 
-    fun updateSelectedImage(imageUri: Uri?) {
-        _chefUiState.update {
-            it.copy(selectedImages = imageUri)
-        }
-    }
-
-
-    fun updatePrompt(prompt: String) {
-        _chefUiState.update {
-            it.copy(prompt = prompt)
-        }
-    }
-
-    fun clearPrompt() {
-        _chefUiState.update {
-            it.copy(
-                prompt = "",
-                selectedImages = null
-            )
-        }
-    }
-
-    fun clearImage() {
-        _chefUiState.update {
-            it.copy(selectedImages = null)
-        }
-    }
 
 
     fun sendPrompt(sessionId: Int, prompt: String) {
@@ -436,19 +433,6 @@ class RecipeViewModel(
         }
     }
 
-    fun updateSessionToDelete(sessionId: Int){
-        _chefUiState.update {
-            it.copy(sessionToDelete = sessionId)
-        }
-    }
-
-    fun resetSessionToDelete(){
-        _chefUiState.update {
-            it.copy(sessionToDelete = null,
-                showDeleteDialog = false
-            )
-        }
-    }
 
     fun resetRenameDialogStatus(){
         _chefUiState.update {
@@ -490,13 +474,35 @@ class RecipeViewModel(
         }
     }
 
-    fun connectListener(){
-        // start listening immediately if signed in
-        listener = repo.listenCurrentUser { user ->
-            println("User: $user")
-            updateUserEmail(user?.email.orEmpty())
+    fun updateSelectedImage(imageUri: Uri?) {
+        _chefUiState.update {
+            it.copy(selectedImages = imageUri)
         }
     }
+
+
+    fun updatePrompt(prompt: String) {
+        _chefUiState.update {
+            it.copy(prompt = prompt)
+        }
+    }
+
+    fun clearPrompt() {
+        _chefUiState.update {
+            it.copy(
+                prompt = "",
+                selectedImages = null
+            )
+        }
+    }
+
+    fun clearImage() {
+        _chefUiState.update {
+            it.copy(selectedImages = null)
+        }
+    }
+
+
 
     fun updateUserEmail(email : String){
         _chefUiState.update {

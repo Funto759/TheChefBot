@@ -182,53 +182,6 @@ class LoginViewModel (
     }
 
 
-    fun onEmailChange(newEmail: String) {
-        _loginUiState.update {
-            it.copy(
-                email = newEmail
-            )
-        }
-    }
-    fun onSignUpEmailChange(newEmail: String) {
-        _loginUiState.update {
-            it.copy(
-                signUpEmail = newEmail
-            )
-        }
-    }
-
-
-    fun onPasswordChange(newPassword: String) {
-        _loginUiState.update {
-            it.copy(
-                password = newPassword
-            )
-        }
-    }
-
-    fun onSignUpPasswordChange(newPassword: String) {
-        _loginUiState.update {
-            it.copy(
-                signUpPassword = newPassword
-            )
-        }
-    }
-
-    fun onSignUpFullNameChange(newFullName: String) {
-        _loginUiState.update {
-            it.copy(
-                signUpFullName = newFullName
-            )
-        }
-    }
-
-    fun onSignUpPhoneNumberChange(newPhoneNumber: String) {
-        _loginUiState.update {
-            it.copy(
-                signUpPhoneNumber = newPhoneNumber
-            )
-        }
-    }
 
     fun loginUserConfirmation(){
         if (_loginUiState.value.email.isNotEmpty() && _loginUiState.value.password.isNotEmpty()){
@@ -357,6 +310,56 @@ class LoginViewModel (
                 cm.clearCredentialState(ClearCredentialStateRequest())
             } catch (_: Exception) { /* ignore */ }
             getAuthStatus()
+        }
+    }
+
+
+
+    fun onEmailChange(newEmail: String) {
+        _loginUiState.update {
+            it.copy(
+                email = newEmail
+            )
+        }
+    }
+    fun onSignUpEmailChange(newEmail: String) {
+        _loginUiState.update {
+            it.copy(
+                signUpEmail = newEmail
+            )
+        }
+    }
+
+
+    fun onPasswordChange(newPassword: String) {
+        _loginUiState.update {
+            it.copy(
+                password = newPassword
+            )
+        }
+    }
+
+    fun onSignUpPasswordChange(newPassword: String) {
+        _loginUiState.update {
+            it.copy(
+                signUpPassword = newPassword
+            )
+        }
+    }
+
+    fun onSignUpFullNameChange(newFullName: String) {
+        _loginUiState.update {
+            it.copy(
+                signUpFullName = newFullName
+            )
+        }
+    }
+
+    fun onSignUpPhoneNumberChange(newPhoneNumber: String) {
+        _loginUiState.update {
+            it.copy(
+                signUpPhoneNumber = newPhoneNumber
+            )
         }
     }
 
