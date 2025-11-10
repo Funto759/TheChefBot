@@ -28,23 +28,24 @@ fun EditableView(
     value : String,
     onValueChange : (String) -> Unit,
     hint : String,
-    passWordVisible: Boolean = true,
+    passWordVisible: Boolean = false,
     isPasswordField : Boolean = false,
     togglePasswordVisibility : () -> Unit = {},
 ){
 
-    val state = if (passWordVisible) {
-        VisualTransformation.None
-    } else {
-        PasswordVisualTransformation()
-    }
+    val visualTransformation =
+        if (isPasswordField && !passWordVisible) {
+            PasswordVisualTransformation()
+        } else {
+            VisualTransformation.None
+        }
 
-    val keyboardOptions = if (isPasswordField){
+    val keyboardOptions = if (isPasswordField) {
         KeyboardOptions(
             keyboardType = KeyboardType.Password,
             imeAction = ImeAction.Done
         )
-    }else{
+    } else {
         KeyboardOptions(
             keyboardType = KeyboardType.Text,
             imeAction = ImeAction.Done
@@ -55,7 +56,7 @@ fun EditableView(
         modifier = modifier
             .fillMaxWidth()
             .padding(end = 12.dp, start = 12.dp),
-        visualTransformation = state,
+        visualTransformation = visualTransformation,
         keyboardOptions = keyboardOptions,
         colors = OutlinedTextFieldDefaults.colors(
             focusedTextColor = colorResource(R.color.orange),
@@ -72,7 +73,6 @@ fun EditableView(
         },
         trailingIcon = {
             if (isPasswordField){
-
                     IconButton(onClick = togglePasswordVisibility) {
                         if (passWordVisible) {
                             Icon(

@@ -17,10 +17,6 @@ abstract class RecipeDatabase : RoomDatabase() {
 
 val MIGRATION_1_2 = object : Migration(3, 4) {
     override fun migrate(database: SupportSQLiteDatabase) {
-        // Add the new column to existing table
-//        database.execSQL(
-//            "ALTER TABLE message_table ADD COLUMN imageUri TEXT"
-//        )
         database.execSQL(
             "ALTER TABLE message_table ADD COLUMN email TEXT"
         )

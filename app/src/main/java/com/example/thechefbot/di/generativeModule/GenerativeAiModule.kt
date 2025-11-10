@@ -17,10 +17,6 @@ val provideGenerativeAI = module {
                 topP = 0.95f
                 maxOutputTokens = Int.MAX_VALUE
             },
-//            safetySettings = listOf(
-//                SafetySetting(HarmCategory.HARASSMENT, BlockThreshold.MEDIUM_AND_ABOVE),
-//                SafetySetting(HarmCategory.HATE_SPEECH, BlockThreshold.MEDIUM_AND_ABOVE),
-//            ),
             requestOptions = RequestOptions(
                 timeout = 60_000 // 60 seconds timeout
             )

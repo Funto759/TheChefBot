@@ -16,21 +16,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
-import androidx.compose.material3.Shapes
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -58,11 +46,9 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.example.thechefbot.R
 import com.example.thechefbot.navigation.Routes
+import com.example.thechefbot.presentation.AuthFeat.effects.AuthEffect
 import com.example.thechefbot.presentation.AuthFeat.events.LoginEvents
 import com.example.thechefbot.presentation.AuthFeat.model.LoginViewModel
-import com.example.thechefbot.presentation.AuthFeat.state.LoginState
-import com.example.thechefbot.presentation.AuthFeat.state.UserLoginState
-import com.example.thechefbot.presentation.AuthFeat.util.BoxItems
 import com.example.thechefbot.presentation.AuthFeat.util.EditableView
 import com.example.thechefbot.presentation.AuthFeat.util.ForgotPasswordText
 import com.example.thechefbot.presentation.AuthFeat.util.LoginActions
@@ -79,37 +65,49 @@ fun LoginUserScreen(modifier: Modifier = Modifier, navController: NavHostControl
     val context = LocalContext.current
     val viewModel = koinViewModel<LoginViewModel>()
     val loginUiState by viewModel.loginUiState.collectAsStateWithLifecycle()
-    val authUiState by viewModel.authStatus.collectAsStateWithLifecycle()
     val credentialManager = remember { CredentialManager.create(context) }
 
 
-    when{
-        loginUiState.navigateToHomeScreen -> {
-            navController.navigate(Routes.Tabs){
-                popUpTo(Routes.SignUp) {
-                    inclusive = true
+    LaunchedEffect(Unit) {
+        viewModel.effects.collect { effect ->
+            when (effect) {
+                is AuthEffect.Toast -> {
+                    Toast.makeText(context, effect.message, Toast.LENGTH_SHORT).show()
+                }
+
+                is AuthEffect.Navigate -> {
+                    if (effect.route == Routes.Tabs) {
+                        navController.navigate(effect.route) {
+                            popUpTo(Routes.SignUp) {
+                                inclusive = true
+                            }
+                        }
+                    } else if (effect.route == "Sign_Out"){
+                        println("Sign Out")
+                    } else {
+                        navController.navigate(effect.route) {
+                        }
+                    }
+
                 }
             }
         }
-        loginUiState.errorStatus -> {
-            Toast.makeText(LocalContext.current, loginUiState.errorMessage, Toast.LENGTH_SHORT).show()
-            viewModel.handleIntents(LoginEvents.ResetErrorStatus)
-        }
     }
+
 
     ScreenLogin(
         modifier = modifier,
         paddingValues = paddingValues,
-        isLoading = authUiState.isLoading,
-        email =authUiState.email,
-        password = authUiState.password,
-        passWordVisible = authUiState.passwordVisible,
+        isLoading = loginUiState.isLoading,
+        email = loginUiState.email,
+        password = loginUiState.password,
+        passWordVisible = loginUiState.passwordVisible,
         onEmailChange = { viewModel.handleIntents(LoginEvents.UpdateEmail(it)) },
         onPasswordChange = { viewModel.handleIntents(LoginEvents.UpdatePassword(it)) },
         onPasswordVisibilityToggle = { viewModel.handleIntents(LoginEvents.PasswordVisible) },
-        onForgotPasswordClick = { navController.navigate(Routes.Otp) },
+        onForgotPasswordClick = { viewModel.sendEffect(AuthEffect.Navigate(Routes.Otp)) },
         onLoginClick = { viewModel.handleIntents(LoginEvents.LoginUser) },
-        onSignUpClick = { navController.navigate(Routes.SignUp) },
+        onSignUpClick = { viewModel.sendEffect(AuthEffect.Navigate(Routes.SignUp)) },
         onGoogleSignIn = {
             viewModel.handleIntents(
                 LoginEvents.GoogleSignIn(
@@ -208,9 +206,7 @@ fun LoginContent(
             // Google login button
             LoginBoxes(
                 modifier = modifier,
-                onGoogle = {
-                  onGoogleSignIn()
-                }
+                onGoogle = onGoogleSignIn
             )
 
             // Sign Up View

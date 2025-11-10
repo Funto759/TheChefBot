@@ -12,7 +12,6 @@ interface ChatDao {
     @Insert
     suspend fun insertMessage(message: ChatMessage): Long
 
-    // Get the full transcript of a session, newest last
     @Query("SELECT * FROM message_table WHERE sessionOwnerId = :sessionId ORDER BY timestamp ASC")
     fun getMessagesForSession(sessionId: Int): Flow<List<ChatMessage>>
 

@@ -32,6 +32,7 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Shapes
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -59,11 +60,10 @@ import androidx.navigation.NavHostController
 import com.example.thechefbot.R
 import com.example.thechefbot.navigation.NavRoute
 import com.example.thechefbot.navigation.Routes
+import com.example.thechefbot.presentation.AuthFeat.effects.AuthEffect
 import com.example.thechefbot.presentation.AuthFeat.events.LoginEvents
 import com.example.thechefbot.presentation.AuthFeat.model.LoginViewModel
 import com.example.thechefbot.presentation.AuthFeat.state.LoginState
-import com.example.thechefbot.presentation.AuthFeat.state.UserLoginState
-import com.example.thechefbot.presentation.AuthFeat.util.BoxItems
 import com.example.thechefbot.presentation.AuthFeat.util.EditableView
 import com.example.thechefbot.presentation.AuthFeat.util.LoginActions
 import com.example.thechefbot.presentation.AuthFeat.util.LoginBoxes
@@ -78,60 +78,50 @@ fun SignUpUserScreen(modifier: Modifier = Modifier, navController: NavHostContro
     val context = LocalContext.current
     val credentialManager = remember { CredentialManager.create(context) }
     val loginUiState by viewModel.loginUiState.collectAsStateWithLifecycle()
-    val authUiState by viewModel.authStatus.collectAsStateWithLifecycle()
 
-    when{
-        loginUiState.navigateToHomeScreen -> {
-            navController.navigate(Routes.Tabs){
-                popUpTo(Routes.Login) {
-                    inclusive = true
+
+    LaunchedEffect(Unit) {
+        viewModel.effects.collect { effect ->
+            when (effect) {
+                is AuthEffect.Toast -> {
+                    Toast.makeText(context, effect.message, Toast.LENGTH_SHORT).show()
+                }
+
+                is AuthEffect.Navigate -> {
+                    if (effect.route == Routes.Tabs) {
+                        navController.navigate(effect.route) {
+                            popUpTo(Routes.SignUp) {
+                                inclusive = true
+                            }
+                        }
+                    }else if (effect.route == "Sign_Out"){
+                        println("Sign Out")
+                    }else {
+                        navController.navigate(effect.route) {
+                        }
+                    }
+
                 }
             }
         }
-        loginUiState.navigateToLoginScreen -> {
-            navController.navigate(NavRoute.RecipeScreen)
-        }
-        loginUiState.signUpErrorStatus -> {
-            Toast.makeText(LocalContext.current, loginUiState.signUpErrorMessage, Toast.LENGTH_SHORT).show()
-            viewModel.handleIntents(LoginEvents.ResetSignUpErrorStatus)
-        }
-
     }
 
     SignUpLogin(
         paddingValues = paddingValues
-        , isLoading = authUiState.isLoading
-        , email = authUiState.email
-        , password = authUiState.signUpPassword
-        , fullName = authUiState.signUpFullName
-        , phoneNumber = authUiState.signUpPhoneNumber
-        , passWordVisible = authUiState.signUpPasswordVisible
-        , onSignUpClick = {
-            viewModel.handleIntents(LoginEvents.SignUpUser)
-        }
-        , onGoogleClick = {
-            viewModel.handleIntents(LoginEvents.GoogleSignIn(credentialManager = credentialManager, context = context,fromSignUp = true))
-        }
-        , goToSignUp = {
-            navController.navigate(Routes.Login)
-        },
-        updateEmail = {
-            viewModel.handleIntents(LoginEvents.SignUpUpdateEmail(it))
-        },
-        updatePassword = {
-            viewModel.handleIntents(LoginEvents.SignUpUpdatePassword(it))
-        },
-
-        updateFullName = {
-            viewModel.handleIntents(LoginEvents.UpdateFullName(it))
-        },
-        updatePhoneNumber = {
-            viewModel.handleIntents(LoginEvents.UpdatePhoneNumber(it))
-
-        },
-        togglePasswordVisibility = {
-            viewModel.handleIntents(LoginEvents.SignUpPasswordVisible)
-        }
+        , isLoading = loginUiState.isLoading
+        , email = loginUiState.signUpEmail
+        , password = loginUiState.signUpPassword
+        , fullName = loginUiState.signUpFullName
+        , phoneNumber = loginUiState.signUpPhoneNumber
+        , passWordVisible = loginUiState.signUpPasswordVisible
+        , onSignUpClick = { viewModel.handleIntents(LoginEvents.SignUpUser) }
+        , onGoogleClick = { viewModel.handleIntents(LoginEvents.GoogleSignIn(credentialManager = credentialManager, context = context,fromSignUp = true)) }
+        , goToSignUp = { viewModel.sendEffect(AuthEffect.Navigate(Routes.Login)) },
+        updateEmail = { viewModel.handleIntents(LoginEvents.SignUpUpdateEmail(it)) },
+        updatePassword = { viewModel.handleIntents(LoginEvents.SignUpUpdatePassword(it)) },
+        updateFullName = { viewModel.handleIntents(LoginEvents.UpdateFullName(it)) },
+        updatePhoneNumber = { viewModel.handleIntents(LoginEvents.UpdatePhoneNumber(it)) },
+        togglePasswordVisibility = { viewModel.handleIntents(LoginEvents.SignUpPasswordVisible) }
     )
 }
 
@@ -236,9 +226,7 @@ fun SignUpContent(
         // Go to login view
         LoginViewAuth(
             modifier = modifier,
-            onClick = {
-               goToSignUp()
-            },
+            onClick =goToSignUp,
             text = "Login"
         )
 
@@ -264,9 +252,7 @@ fun SignUpTextFields(
         modifier = modifier,
         value = fullName,
         hint = "Full Name",
-        onValueChange = {
-            updateFullName(it)
-        }
+        onValueChange = updateFullName
     )
 
     Spacer(modifier = modifier.height(18.dp))
@@ -275,9 +261,7 @@ fun SignUpTextFields(
         modifier = modifier,
         value = phoneNumber,
         hint = "Phone Number",
-        onValueChange = {
-            updatePhoneNumber(it)
-        }
+        onValueChange = updatePhoneNumber
     )
 
     Spacer(modifier = modifier.height(18.dp))
@@ -286,9 +270,7 @@ fun SignUpTextFields(
         modifier = modifier,
         value = email,
         hint = "Email",
-        onValueChange = {
-            updateEmail(it)
-        }
+        onValueChange = updateEmail
     )
 
     Spacer(modifier = modifier.height(18.dp))
@@ -297,14 +279,10 @@ fun SignUpTextFields(
         modifier = modifier,
         value = password,
         hint = "Password",
-        onValueChange = {
-            updatePassword(it)
-        },
+        onValueChange = updatePassword,
         passWordVisible = passWordVisible,
         isPasswordField = true,
-        togglePasswordVisibility = {
-            togglePasswordVisibility()
-        }
+        togglePasswordVisibility = togglePasswordVisibility
     )
 
 }

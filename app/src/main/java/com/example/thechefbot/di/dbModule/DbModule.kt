@@ -46,6 +46,4 @@ val provideViewModelModule = module {
     viewModelOf(::RecipeViewModel)
     viewModelOf(::LoginViewModel)
     viewModelOf(::SettingsViewModel)
-//    viewModelOf(::HistoryViewModel)
-//    viewModelOf(::HistoryDetailViewModel)
 }

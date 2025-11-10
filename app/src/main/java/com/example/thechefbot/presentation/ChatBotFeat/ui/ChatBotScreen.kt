@@ -21,6 +21,7 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberCoroutineScope
@@ -48,6 +49,7 @@ import com.example.thechefbot.presentation.ChatBotFeat.data.ChatMessage
 import com.example.thechefbot.presentation.ChatBotFeat.data.ChatSession
 import com.example.thechefbot.presentation.ChatBotFeat.dummy.dummyMessages
 import com.example.thechefbot.presentation.ChatBotFeat.dummy.dummySessions
+import com.example.thechefbot.presentation.ChatBotFeat.effects.ChatBotEffects
 import com.example.thechefbot.presentation.ChatBotFeat.state.ChefUiState
 import com.example.thechefbot.ui.theme.TheChefBotTheme
 import com.example.thechefbot.util.launchCamera
@@ -70,6 +72,19 @@ fun ChatBotScreen(modifier: Modifier = Modifier, navHostController: NavHostContr
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
     val listState = rememberLazyListState()
+
+    LaunchedEffect(Unit) {
+        viewModel.effects.collect { effects ->
+            when(effects){
+                is ChatBotEffects.NavigateTo -> {
+                    navHostController.navigate(effects.route)
+                }
+                is ChatBotEffects.ShowToast -> {
+                    Toast.makeText(context, effects.message, Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+    }
 
     val photoPicker = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickVisualMedia(),
@@ -108,9 +123,7 @@ fun ChatBotScreen(modifier: Modifier = Modifier, navHostController: NavHostContr
         allSessions = allSessions,
         activeSessionId = chefUiState.activeSessionId,
         context = context,
-        onToggleRenameDialog = {
-            viewModel.handleEvent(ChefScreenEvents.UpdateShowRenameDialogStatus(true))
-        },
+        onToggleRenameDialog = { viewModel.handleEvent(ChefScreenEvents.UpdateShowRenameDialogStatus(true)) },
         expandDrawer = {
             scope.launch {
                 if (drawerState.isClosed) {
@@ -128,17 +141,9 @@ fun ChatBotScreen(modifier: Modifier = Modifier, navHostController: NavHostContr
             viewModel.handleEvent(ChefScreenEvents.CreateNewSession)
             scope.launch { drawerState.close() }
         },
-        onSettingsClicked = {
-            navHostController.navigate(Routes.Profile)
-        },
-        showDeleteDialog = {
-//            viewModel.handleEvent(ChefScreenEvents.DeleteAllSessions)
-                viewModel.handleEvent(ChefScreenEvents.UpdateShowDialogStatus(true,null))
-        },
-        sessionToDelete = {
-//            viewModel.handleEvent(ChefScreenEvents.DeleteSession(it))
-                   viewModel.handleEvent(ChefScreenEvents.UpdateShowDialogStatus(true, it))
-        },
+        onSettingsClicked = { viewModel.sendEffects(ChatBotEffects.NavigateTo(Routes.Profile)) },
+        showDeleteDialog = { viewModel.handleEvent(ChefScreenEvents.UpdateShowDialogStatus(true,null)) },
+        sessionToDelete = { viewModel.handleEvent(ChefScreenEvents.UpdateShowDialogStatus(true, it)) },
         selectedImages = chefUiState.selectedImages,
         loading = chefUiState.loading,
         prompt = chefUiState.prompt,
@@ -150,12 +155,8 @@ fun ChatBotScreen(modifier: Modifier = Modifier, navHostController: NavHostContr
                 listState.animateScrollToItem(lastIndex)
             }
         },
-        onValueChange = {
-            viewModel.handleEvent(ChefScreenEvents.UpdatePrompt(it))
-        },
-        launchPhotoPicker = {
-            launchPhotoPicker(photoPicker = photoPicker)
-        },
+        onValueChange = { viewModel.handleEvent(ChefScreenEvents.UpdatePrompt(it)) },
+        launchPhotoPicker = { launchPhotoPicker(photoPicker = photoPicker) },
         launchCamera = {
             launchCamera(context = context, permissionLauncher = permissionLauncher, cameraLauncher = cameraLauncher, cameraUri = { uri ->
                 cameraUri = uri
@@ -168,16 +169,9 @@ fun ChatBotScreen(modifier: Modifier = Modifier, navHostController: NavHostContr
             viewModel.handleEvent(ChefScreenEvents.ClearImage)
             viewModel.handleEvent(ChefScreenEvents.ToggleGalleryMenuExpanded)
         },
-        toggleExpanded = {
-            viewModel.handleEvent(ChefScreenEvents.ToggleGalleryMenuExpanded)
-        },
-        settingsToggleExpanded = {
-            viewModel.handleEvent(ChefScreenEvents.ToggleSettingsMenuExpanded)
-        },
-        onDeleteClicked = {
-//            viewModel.handleEvent(ChefScreenEvents.DeleteSession(chefUiState.activeSessionId))
-            viewModel.handleEvent(ChefScreenEvents.UpdateShowDialogStatus(true,chefUiState.activeSessionId))
-        },
+        toggleExpanded = { viewModel.handleEvent(ChefScreenEvents.ToggleGalleryMenuExpanded) },
+        settingsToggleExpanded = { viewModel.handleEvent(ChefScreenEvents.ToggleSettingsMenuExpanded) },
+        onDeleteClicked = { viewModel.handleEvent(ChefScreenEvents.UpdateShowDialogStatus(true,chefUiState.activeSessionId)) },
         onClick = {
             scope.launch {
                 if (drawerState.isClosed) {
@@ -187,9 +181,7 @@ fun ChatBotScreen(modifier: Modifier = Modifier, navHostController: NavHostContr
                 }
             }
         },
-        onDismissAlertDialog = {
-            viewModel.handleEvent(ChefScreenEvents.ResetSessionToDelete)
-        },
+        onDismissAlertDialog = { viewModel.handleEvent(ChefScreenEvents.ResetSessionToDelete) },
         onConfirmAlertDialog = {
             val id = chefUiState.sessionToDelete
             if (id != null && id != 0) {
@@ -198,21 +190,11 @@ fun ChatBotScreen(modifier: Modifier = Modifier, navHostController: NavHostContr
                 viewModel.handleEvent(ChefScreenEvents.DeleteAllSessions)
             }
         },
-        onCancelAlertDialog = {
-            viewModel.handleEvent(ChefScreenEvents.ResetSessionToDelete)
-        },
-        onDismissRename = {
-            viewModel.handleEvent(ChefScreenEvents.UpdateShowRenameDialogStatus(false))
-        },
-        onConfirmRename = {
-            viewModel.handleEvent(ChefScreenEvents.RenameChat)
-        },
-        onCancelRename = {
-            viewModel.handleEvent(ChefScreenEvents.UpdateShowRenameDialogStatus(false))
-        },
-        onValueChangeRename = {
-            viewModel.handleEvent(ChefScreenEvents.UpdateNewTitle(it))
-        },
+        onCancelAlertDialog = { viewModel.handleEvent(ChefScreenEvents.ResetSessionToDelete) },
+        onDismissRename = { viewModel.handleEvent(ChefScreenEvents.UpdateShowRenameDialogStatus(false)) },
+        onConfirmRename = { viewModel.handleEvent(ChefScreenEvents.RenameChat) },
+        onCancelRename = { viewModel.handleEvent(ChefScreenEvents.UpdateShowRenameDialogStatus(false)) },
+        onValueChangeRename = { viewModel.handleEvent(ChefScreenEvents.UpdateNewTitle(it)) },
         expanded = chefUiState.expanded,
         settingsExpandedStatus = chefUiState.settingsToggleExpanded,
         messages = messages,

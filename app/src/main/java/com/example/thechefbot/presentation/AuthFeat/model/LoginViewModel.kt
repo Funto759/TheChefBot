@@ -14,9 +14,10 @@ import androidx.credentials.exceptions.GetCredentialException
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.thechefbot.R
+import com.example.thechefbot.navigation.Routes
+import com.example.thechefbot.presentation.AuthFeat.effects.AuthEffect
 import com.example.thechefbot.presentation.AuthFeat.events.LoginEvents
 import com.example.thechefbot.presentation.AuthFeat.state.LoginState
-import com.example.thechefbot.presentation.AuthFeat.state.UserLoginState
 import com.example.thechefbot.presentation.ChatBotFeat.model.SessionPrefs
 import com.example.thechefbot.presentation.SettingsFeat.data.AppUser
 import com.example.thechefbot.presentation.SettingsFeat.events.SettingEvents
@@ -27,8 +28,11 @@ import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential.Co
 import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.GoogleAuthProvider
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlin.text.isNotEmpty
@@ -40,8 +44,11 @@ class LoginViewModel (
     private val sessionPrefs: SessionPrefs,
 ) : ViewModel() {
 
-    private val _authStatus = MutableStateFlow(UserLoginState())
-    val authStatus = _authStatus.asStateFlow()
+   private val _effects = Channel<AuthEffect>(Channel.BUFFERED)
+    val effects = _effects.receiveAsFlow()
+
+
+
 
     private val _loginUiState = MutableStateFlow(LoginState())
     val loginUiState = _loginUiState.asStateFlow()
@@ -49,6 +56,12 @@ class LoginViewModel (
 
     init {
         handleIntents(LoginEvents.GetAuthStatus)
+    }
+
+    fun sendEffect(effect: AuthEffect){
+        viewModelScope.launch(Dispatchers.IO) {
+            _effects.send(effect)
+        }
     }
 
     fun updateFields(phone_number: String? = null,photoUrl: String? = null,email : String? = null,fullName: String? = null, bio: String? = null, onDone: (Boolean, String?) -> Unit) {
@@ -73,7 +86,7 @@ class LoginViewModel (
     private fun launchCredentialManager(credentialManager: CredentialManager,context: Context,fromSignUp: Boolean = false) {
         viewModelScope.launch {
             if (fromSignUp) {
-                if (_authStatus.value.signUpFullName.isNotEmpty() && _authStatus.value.signUpPhoneNumber.isNotEmpty()) {
+                if (_loginUiState.value.signUpFullName.isNotEmpty() && _loginUiState.value.signUpPhoneNumber.isNotEmpty()) {
                     println("Launching Credential Manager")
                 } else {
                     _loginUiState.value = _loginUiState.value.copy(
@@ -81,6 +94,7 @@ class LoginViewModel (
                         signUpErrorStatus = true,
                         signUpErrorMessage = "Full name and Phone number cannot be empty"
                     )
+                    sendEffect(AuthEffect.Toast("Full name and Phone number cannot be empty"))
                     return@launch
                 }
             }
@@ -138,6 +152,7 @@ class LoginViewModel (
     fun onGoogleIdToken(idToken: String?,fromSignUp: Boolean = false) {
         if (idToken.isNullOrEmpty()) {
             _loginUiState.update { it.copy(errorStatus = true, errorMessage = "Google token is null") }
+            sendEffect(AuthEffect.Toast("Google token is null"))
             return
         }
         _loginUiState.update { it.copy(isLoading = true, errorStatus = false, errorMessage = null) }
@@ -149,32 +164,33 @@ class LoginViewModel (
                 if (fromSignUp){
                     handleIntents(LoginEvents.UpdateUser(
                         user = AppUser(
-                            full_name = _authStatus.value.signUpFullName,
-                            phone_number = _authStatus.value.signUpPhoneNumber,
+                            full_name = _loginUiState.value.signUpFullName,
+                            phone_number = _loginUiState.value.signUpPhoneNumber,
                             bio = "",
                             photoUrl = "",
                         )
                     ))
                 }else {
-                    handleIntents(LoginEvents.NavigateToHomeScreen)
+                    sendEffect(AuthEffect.Navigate(Routes.Tabs))
                 }
             }
             .addOnFailureListener { e ->
                 println(e.message)
                 _loginUiState.update { it.copy(isLoading = false, errorStatus = true, errorMessage = e.message) }
+                sendEffect(AuthEffect.Toast(e.message.toString()))
             }
     }
 
 
     fun onEmailChange(newEmail: String) {
-        _authStatus.update {
+        _loginUiState.update {
             it.copy(
                 email = newEmail
             )
         }
     }
     fun onSignUpEmailChange(newEmail: String) {
-        _authStatus.update {
+        _loginUiState.update {
             it.copy(
                 signUpEmail = newEmail
             )
@@ -183,7 +199,7 @@ class LoginViewModel (
 
 
     fun onPasswordChange(newPassword: String) {
-        _authStatus.update {
+        _loginUiState.update {
             it.copy(
                 password = newPassword
             )
@@ -191,7 +207,7 @@ class LoginViewModel (
     }
 
     fun onSignUpPasswordChange(newPassword: String) {
-        _authStatus.update {
+        _loginUiState.update {
             it.copy(
                 signUpPassword = newPassword
             )
@@ -199,7 +215,7 @@ class LoginViewModel (
     }
 
     fun onSignUpFullNameChange(newFullName: String) {
-        _authStatus.update {
+        _loginUiState.update {
             it.copy(
                 signUpFullName = newFullName
             )
@@ -207,7 +223,7 @@ class LoginViewModel (
     }
 
     fun onSignUpPhoneNumberChange(newPhoneNumber: String) {
-        _authStatus.update {
+        _loginUiState.update {
             it.copy(
                 signUpPhoneNumber = newPhoneNumber
             )
@@ -215,23 +231,24 @@ class LoginViewModel (
     }
 
     fun loginUserConfirmation(){
-        if (_authStatus.value.email.isNotEmpty() && _authStatus.value.password.isNotEmpty()){
-         loginUser(_authStatus.value.email,_authStatus.value.password)
+        if (_loginUiState.value.email.isNotEmpty() && _loginUiState.value.password.isNotEmpty()){
+         loginUser(_loginUiState.value.email,_loginUiState.value.password)
         }else{
             _loginUiState.value = _loginUiState.value.copy(success = false, errorStatus = true, errorMessage = "Email and password cannot be empty")
-
+            sendEffect(AuthEffect.Toast("Email and password cannot be empty"))
         }
     }
 
     fun signUpUserConfirmation(){
-        if (_authStatus.value.signUpEmail.isNotEmpty() && _authStatus.value.signUpPassword.isNotEmpty() && _authStatus.value.signUpFullName.isNotEmpty() && _authStatus.value.signUpPhoneNumber.isNotEmpty()){
-          signUpUser(_authStatus.value.signUpEmail,_authStatus.value.signUpPassword)
+        if (_loginUiState.value.signUpEmail.isNotEmpty() && _loginUiState.value.signUpPassword.isNotEmpty() && _loginUiState.value.signUpFullName.isNotEmpty() && _loginUiState.value.signUpPhoneNumber.isNotEmpty()){
+          signUpUser(_loginUiState.value.signUpEmail,_loginUiState.value.signUpPassword)
         }
-        else if (_authStatus.value.signUpPassword.length <= 8){
+        else if (_loginUiState.value.signUpPassword.length <= 8){
             _loginUiState.value = _loginUiState.value.copy(signUpSuccess = false, signUpErrorStatus = true, signUpErrorMessage = "Password must be at least 8 characters")
+            sendEffect(AuthEffect.Toast("Password must be at least 8 characters"))
         } else{
             _loginUiState.value = _loginUiState.value.copy(signUpSuccess = false, signUpErrorStatus = true, signUpErrorMessage = "Email, Full name, Phone number and Password cannot be empty")
-
+            sendEffect(AuthEffect.Toast("Email, Full name, Phone number and Password cannot be empty"))
         }
     }
 
@@ -245,6 +262,7 @@ class LoginViewModel (
                     isLoading = false,
                     authenticated = false
                 )
+                sendEffect(AuthEffect.Navigate("Sign_Out"))
             } else {
                 println("User is logged in")
                 _loginUiState.value = _loginUiState.value.copy(
@@ -269,7 +287,8 @@ class LoginViewModel (
                                 success, message ->
                             if (success){
                                 println("User created successfully")
-                                handleIntents(LoginEvents.NavigateToHomeScreen)
+                                sendEffect(AuthEffect.Navigate(Routes.Tabs))
+//                                handleIntents(LoginEvents.NavigateToHomeScreen)
                             }else{
                                 println("User creation failed")
                                 _loginUiState.value = _loginUiState.value.copy(
@@ -278,6 +297,7 @@ class LoginViewModel (
                                     signUpErrorStatus = true,
                                     signUpErrorMessage = message
                                 )
+                                sendEffect(AuthEffect.Toast(message.toString()))
                             }
                         })
                     }else{
@@ -288,6 +308,7 @@ class LoginViewModel (
                             errorStatus = true,
                             errorMessage = task.exception?.message
                         )
+                        sendEffect(AuthEffect.Toast(task.exception?.message.toString()))
                     }
                 }
         }
@@ -304,8 +325,8 @@ class LoginViewModel (
                         println("User created successfully")
                        handleIntents(LoginEvents.UpdateUser(
                            user = AppUser(
-                               full_name = _authStatus.value.signUpFullName,
-                               phone_number = _authStatus.value.signUpPhoneNumber,
+                               full_name = _loginUiState.value.signUpFullName,
+                               phone_number = _loginUiState.value.signUpPhoneNumber,
                                email = email,
                                bio = "",
                                photoUrl = "",
@@ -319,6 +340,7 @@ class LoginViewModel (
                             signUpErrorStatus = true,
                             signUpErrorMessage = task.exception?.message
                         )
+                        sendEffect(AuthEffect.Toast(task.exception?.message.toString()))
                     }
                 }
         }
@@ -340,13 +362,15 @@ class LoginViewModel (
 
     fun togglePasswordVisibility(){
         _loginUiState.update {
-            it.copy(signUpPasswordVisible = !it.signUpPasswordVisible, success = false, signUpErrorStatus = false )
+            it.copy(passwordVisible = !it.passwordVisible, success = false, signUpErrorStatus = false )
         }
+        println("Password Login Visibility: ${_loginUiState.value.passwordVisible}")
     }
     fun toggleSignUpPasswordVisibility(){
         _loginUiState.update {
-            it.copy(passwordVisible = !it.passwordVisible, signUpSuccess = false, signUpErrorStatus = false )
+            it.copy(signUpPasswordVisible = !it.signUpPasswordVisible, signUpSuccess = false, signUpErrorStatus = false )
         }
+        println("Password  Sign Up Visibility: ${_loginUiState.value.signUpPasswordVisible}")
     }
 
     fun deleteLastSession(){
@@ -360,19 +384,13 @@ class LoginViewModel (
 
     fun handleIntents(events : LoginEvents){
         when(events){
-            is LoginEvents.DeleteLastSession -> {
-                deleteLastSession()
-            }
+            is LoginEvents.DeleteLastSession ->  deleteLastSession()
             is LoginEvents.LoginUser -> loginUserConfirmation()
-            LoginEvents.NavigateToForgotPasswordScreen -> TODO()
-            LoginEvents.NavigateToHomeScreen -> _loginUiState.value = _loginUiState.value.copy(navigateToHomeScreen = true)
-            LoginEvents.NavigateToRegisterScreen -> TODO()
             is LoginEvents.UpdateEmail -> onEmailChange(events.email)
             is LoginEvents.UpdatePassword -> onPasswordChange(events.password)
             is LoginEvents.UpdateFullName -> onSignUpFullNameChange(events.fullName)
             is LoginEvents.UpdatePhoneNumber -> onSignUpPhoneNumberChange(events.phoneNumber)
             is LoginEvents.PasswordVisible -> togglePasswordVisibility()
-            LoginEvents.NavigateToLoginScreen -> _loginUiState.value = _loginUiState.value.copy(navigateToLoginScreen = true)
             is LoginEvents.SignUpPasswordVisible -> toggleSignUpPasswordVisibility()
             is LoginEvents.SignUpUpdateEmail -> onSignUpEmailChange(events.email)
             is LoginEvents.SignUpUpdatePassword -> onSignUpPasswordChange(events.password)
@@ -392,9 +410,7 @@ class LoginViewModel (
                 fullName = events.user.full_name,
                 bio = events.user.bio
             ){ok,mess ->
-                if (ok) {
-                    handleIntents(LoginEvents.NavigateToHomeScreen)
-                }
+                if (ok) { sendEffect(AuthEffect.Navigate(Routes.Tabs)) }
             }
         }
     }

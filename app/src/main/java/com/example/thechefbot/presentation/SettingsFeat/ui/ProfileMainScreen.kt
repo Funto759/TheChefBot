@@ -1,6 +1,7 @@
 package com.example.thechefbot.presentation.SettingsFeat.ui
 
 
+import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -15,6 +16,7 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -22,6 +24,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -32,6 +35,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.example.thechefbot.R
 import com.example.thechefbot.presentation.SettingsFeat.data.AppUser
+import com.example.thechefbot.presentation.SettingsFeat.effects.SettingsEffects
 import com.example.thechefbot.presentation.SettingsFeat.events.SettingEvents
 import com.example.thechefbot.presentation.SettingsFeat.model.SettingsViewModel
 import com.example.thechefbot.ui.theme.TheChefBotTheme
@@ -44,6 +48,24 @@ fun ProfileMainScreen(modifier: Modifier = Modifier,navHostController: NavHostCo
 
     val viewModel = koinViewModel<SettingsViewModel>()
     val profileUiState by viewModel.profileUiState.collectAsState()
+    val context = LocalContext.current
+
+    LaunchedEffect(Unit) {
+        viewModel.effects.collect { effect ->
+            when(effect){
+                is SettingsEffects.NavigateTo -> {
+                    if (effect.route != null) {
+                        navHostController.navigate(effect.route)
+                    }else{
+                        navHostController.popBackStack()
+                    }
+                }
+                is SettingsEffects.ShowToast -> {
+                    Toast.makeText(context, effect.message, Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+    }
 
     when {
         profileUiState.onBackPressed -> {
@@ -51,7 +73,7 @@ fun ProfileMainScreen(modifier: Modifier = Modifier,navHostController: NavHostCo
                 viewModel.handleIntents(SettingEvents.IsEditable(false))
                 viewModel.handleIntents(SettingEvents.OnBackPressed(false))
             } else {
-                navHostController.popBackStack()
+                viewModel.sendEffects(SettingsEffects.NavigateTo(null))
             }
         }
     }

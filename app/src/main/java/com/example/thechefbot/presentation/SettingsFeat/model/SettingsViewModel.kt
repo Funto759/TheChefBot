@@ -6,13 +6,16 @@ import com.example.thechefbot.presentation.ChatBotFeat.model.SessionPrefs
 import com.example.thechefbot.presentation.ChatBotFeat.model.ThemePrefs
 
 import com.example.thechefbot.presentation.SettingsFeat.data.AppUser
+import com.example.thechefbot.presentation.SettingsFeat.effects.SettingsEffects
 import com.example.thechefbot.presentation.SettingsFeat.events.SettingEvents
 import com.example.thechefbot.presentation.SettingsFeat.state.SettingsState
 import com.google.firebase.firestore.ListenerRegistration
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -31,6 +34,9 @@ class SettingsViewModel (
    private val _profileUiState = MutableStateFlow(SettingsState())
     val profileUiState = _profileUiState.asStateFlow()
 
+    private val _effects = Channel<SettingsEffects>(Channel.BUFFERED)
+    val effects = _effects.receiveAsFlow()
+
 
     private var listener: ListenerRegistration? = null
 
@@ -38,6 +44,13 @@ class SettingsViewModel (
         handleIntents(SettingEvents.ConnectListener)
         _profileUiState.update {
             it.copy(isDark = themePrefs.isDark())
+        }
+    }
+
+
+    fun sendEffects(effects: SettingsEffects){
+        viewModelScope.launch(Dispatchers.IO) {
+            _effects.send(effects)
         }
     }
 

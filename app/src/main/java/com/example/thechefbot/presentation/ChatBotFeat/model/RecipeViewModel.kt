@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.thechefbot.presentation.ChatBotFeat.data.ChatMessage
 import com.example.thechefbot.presentation.ChatBotFeat.data.ChatSession
+import com.example.thechefbot.presentation.ChatBotFeat.effects.ChatBotEffects
 import com.example.thechefbot.presentation.ChatBotFeat.events.ChefScreenEvents
 import com.example.thechefbot.presentation.ChatBotFeat.state.ChefUiState
 import com.example.thechefbot.presentation.SettingsFeat.model.UserRepository
@@ -14,12 +15,14 @@ import com.google.ai.client.generativeai.GenerativeModel
 import com.google.ai.client.generativeai.type.content
 import com.google.firebase.firestore.ListenerRegistration
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -34,13 +37,13 @@ class RecipeViewModel(
 
     private val _activeSessionId = MutableStateFlow<Int?>(null)
 
-    //    private val _activeSessionId = MutableStateFlow<Int?>(null)
     val activeSessionId = _activeSessionId.asStateFlow()
 
     val _chefUiState = MutableStateFlow(ChefUiState())
     val chefUiState = _chefUiState.asStateFlow()
 
-
+    private val _effects = Channel<ChatBotEffects>(Channel.BUFFERED)
+    val effects = _effects.receiveAsFlow()
 
 
     private var listener: ListenerRegistration? = null
@@ -55,6 +58,12 @@ class RecipeViewModel(
             }else {
                 createNewSession()
             }
+        }
+    }
+
+    fun sendEffects(effects: ChatBotEffects){
+        viewModelScope.launch(Dispatchers.IO) {
+            _effects.send(effects)
         }
     }
 
@@ -244,6 +253,7 @@ class RecipeViewModel(
                             error = "No response received from the model"
                         )
                     }
+                    sendEffects(ChatBotEffects.ShowToast("No response received from the model"))
                     return@launch
                 }
                 if ((selectedSession.value?.title ?: null) == null){
@@ -309,6 +319,7 @@ class RecipeViewModel(
                         error = errorMessage
                     )
                 }
+                sendEffects(ChatBotEffects.ShowToast(errorMessage))
             }
         }
     }
@@ -355,6 +366,7 @@ class RecipeViewModel(
                             error = "No response received from the model"
                         )
                     }
+                    sendEffects(ChatBotEffects.ShowToast("No response received from the model"))
                     return@launch
                 }
 
@@ -419,6 +431,7 @@ class RecipeViewModel(
                         error = errorMessage
                     )
                 }
+                sendEffects(ChatBotEffects.ShowToast(errorMessage))
             }
         }
     }
@@ -503,6 +516,7 @@ class RecipeViewModel(
         val email = _chefUiState.value.userEmail
         if (email.isBlank()) {
             _chefUiState.update { it.copy(errorState = true, error = "Not signed in.") }
+            sendEffects(ChatBotEffects.ShowToast("Not signed in."))
             return null
         }
         return email

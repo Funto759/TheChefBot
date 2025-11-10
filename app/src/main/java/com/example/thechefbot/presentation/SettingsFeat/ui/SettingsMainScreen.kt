@@ -1,5 +1,6 @@
 package com.example.thechefbot.presentation.SettingsFeat.ui
 
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.clickable
@@ -32,8 +33,10 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import com.example.thechefbot.navigation.Routes
+import com.example.thechefbot.presentation.AuthFeat.effects.AuthEffect
 import com.example.thechefbot.presentation.AuthFeat.events.LoginEvents
 import com.example.thechefbot.presentation.AuthFeat.model.LoginViewModel
+import com.example.thechefbot.presentation.SettingsFeat.effects.SettingsEffects
 import com.example.thechefbot.presentation.SettingsFeat.events.SettingEvents
 import com.example.thechefbot.presentation.SettingsFeat.util.SettingsItemView
 import com.example.thechefbot.presentation.SettingsFeat.util.SettingsSwitchItem
@@ -48,44 +51,64 @@ import org.koin.androidx.compose.koinViewModel
 @Composable
 fun SettingsMainScreen(navHostController: NavHostController,onSignOut : (Boolean) -> Unit = {}) {
     var pushNotificationsEnabled by rememberSaveable { mutableStateOf(true) }
-    var darkModeEnabled by rememberSaveable { mutableStateOf(false) }
 
     val viewModel = koinViewModel<LoginViewModel>()
     val settingsViewModel = koinViewModel <SettingsViewModel>()
     val profileUiState by settingsViewModel.profileUiState.collectAsState()
-    val auth by viewModel.loginUiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
 
 
-    when{
-        auth.authenticated -> {
-
+    LaunchedEffect(Unit) {
+        settingsViewModel.effects.collect { effect ->
+            when(effect){
+                is SettingsEffects.NavigateTo -> {
+                    if (effect.route != null) {
+                        navHostController.navigate(effect.route)
+                    }else{
+                        navHostController.popBackStack()
+                    }
+                }
+                is SettingsEffects.ShowToast -> {
+                    Toast.makeText(context, effect.message, Toast.LENGTH_SHORT).show()
+                }
+            }
         }
-        auth.unAuthenticated -> {
-            onSignOut(true)
+    }
+
+    LaunchedEffect(Unit) {
+        viewModel.effects.collect { effect ->
+            when(effect){
+                is AuthEffect.Navigate -> {
+                    if (effect.route == "Sign_Out") {
+                        onSignOut(true)
+                    }else{
+                        navHostController.navigate(effect.route)
+                    }
+                }
+                is AuthEffect.Toast-> {
+                    Toast.makeText(context, effect.message, Toast.LENGTH_SHORT).show()
+                }
+            }
         }
     }
 
 
     SettingMainUi(
         email = profileUiState.email,
-        navHostController = navHostController,
         pushNotificationsEnabled = pushNotificationsEnabled,
         onPushNotificationsToggle = { pushNotificationsEnabled = it },
         darkModeEnabled = profileUiState.isDark,
         onDarkModeToggle = { settingsViewModel.handleIntents(SettingEvents.ToggleTheme(it)) },
         onSignOutClick = { viewModel.handleIntents(LoginEvents.SignOut(context = context)) },
-        onBackClick = { navHostController.popBackStack() },
-        onUserProfileClick = {navHostController.navigate(Routes.UserProfile)}
+        onBackClick = { settingsViewModel.sendEffects(SettingsEffects.NavigateTo(null)) },
+        onUserProfileClick = {settingsViewModel.sendEffects(SettingsEffects.NavigateTo(Routes.UserProfile))}
     )
 }
 
 
 @Composable
 fun SettingMainUi(
-
     email: String,
-    navHostController: NavHostController,
     pushNotificationsEnabled: Boolean,
     onPushNotificationsToggle: (Boolean) -> Unit={},
     darkModeEnabled: Boolean,
@@ -100,7 +123,6 @@ fun SettingMainUi(
             SettingsContent(
                 innerPadding = innerPadding,
                 email = email,
-                navHostController = navHostController,
                 pushNotificationsEnabled = pushNotificationsEnabled,
                 onPushNotificationsToggle = onPushNotificationsToggle,
                 darkModeEnabled = darkModeEnabled,
@@ -146,7 +168,6 @@ fun SettingsContentScaffold(
 fun SettingsContent(
     innerPadding: PaddingValues,
     email: String,
-    navHostController: NavHostController,
     pushNotificationsEnabled: Boolean,
     onPushNotificationsToggle: (Boolean) -> Unit,
     darkModeEnabled: Boolean,
@@ -180,7 +201,7 @@ fun SettingsContent(
             SettingsItemView(
                 modifier = Modifier,
                 text = "Edit Profile",
-                onClick = { navHostController.navigate(Routes.UserProfile) },
+                onClick = onUserProfileClick,
                 leadingIcon = Icons.Default.Person
             )
         }
@@ -240,7 +261,6 @@ fun previewSettings(){
     TheChefBotTheme {
         SettingMainUi(
             email = "john.hessin.clarke@examplepetstore.com",
-            navHostController = NavHostController(LocalContext.current),
             pushNotificationsEnabled = true,
             onPushNotificationsToggle = {},
             darkModeEnabled = false,

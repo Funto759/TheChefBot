@@ -1,5 +1,6 @@
 package com.example.thechefbot.presentation.AuthFeat.ui
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.focusable
@@ -34,6 +35,7 @@ import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalAutofill
 import androidx.compose.ui.platform.LocalAutofillTree
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.ImeAction
@@ -43,11 +45,35 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.example.thechefbot.navigation.Routes
+import com.example.thechefbot.presentation.AuthFeat.effects.AuthEffect
+import com.example.thechefbot.presentation.AuthFeat.model.LoginViewModel
 
 import okhttp3.Route
+import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun ForgotPasswordScreen( navController: NavHostController, paddingValues: PaddingValues){
+
+    val viewModel = koinViewModel<LoginViewModel>()
+    val context = LocalContext.current
+
+    LaunchedEffect(Unit) {
+        viewModel.effects.collect {
+            when (it) {
+                is AuthEffect.Navigate -> {
+                    if (it.route == "Sign_Out"){
+                        println("Sign Out")
+                    }else {
+                        navController.navigate(it.route)
+                    }
+                }
+
+                is AuthEffect.Toast -> {
+                    Toast.makeText(context, it.message, Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+    }
 
     var otpText by rememberSaveable { mutableStateOf("") }
     Column(
@@ -64,7 +90,7 @@ fun ForgotPasswordScreen( navController: NavHostController, paddingValues: Paddi
 
         if(otpText.length == 6) {
             Button(onClick = {
-                navController.navigate(Routes.Login)
+                viewModel.sendEffect(AuthEffect.Navigate(Routes.Login))
             }) {
                 Text(
                     text = "Submit"

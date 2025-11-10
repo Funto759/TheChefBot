@@ -25,7 +25,6 @@ import org.koin.androidx.compose.koinViewModel
 fun NavigationGuide(navController: NavHostController
 ) {
 
-    val status by rememberSaveable { mutableStateOf(false) }
 
     val viewModel = koinViewModel<LoginViewModel>()
     val authStatus by viewModel.loginUiState.collectAsStateWithLifecycle()
@@ -36,8 +35,6 @@ fun NavigationGuide(navController: NavHostController
         else -> Routes.Login
     }
 
-
-//    val startDestination2 = if (status) NavigationGuide.HomeScreen else NavigationGuide.LoginScreen
     NavHost(navController = navController, startDestination = startDestination, builder = {
 
         composable(Routes.Login){

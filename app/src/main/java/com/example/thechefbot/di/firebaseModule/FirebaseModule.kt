@@ -8,5 +8,5 @@ import org.koin.dsl.module
 
 val provideFirebaseModule = module {
     single<com.google.firebase.auth.FirebaseAuth> { com.google.firebase.auth.FirebaseAuth.getInstance() }
-    single<FirebaseFirestore> { com.google.firebase.firestore.FirebaseFirestore.getInstance() }
+    single<FirebaseFirestore> { FirebaseFirestore.getInstance() }
 }
