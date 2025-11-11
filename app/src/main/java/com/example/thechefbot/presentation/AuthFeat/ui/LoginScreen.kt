@@ -44,8 +44,9 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import androidx.navigation3.runtime.NavBackStack
 import com.example.thechefbot.R
-import com.example.thechefbot.navigation.Routes
+import com.example.thechefbot.navigation.NavGraphItems
 import com.example.thechefbot.presentation.AuthFeat.effects.AuthEffect
 import com.example.thechefbot.presentation.AuthFeat.events.LoginEvents
 import com.example.thechefbot.presentation.AuthFeat.model.LoginViewModel
@@ -60,7 +61,7 @@ import dagger.hilt.android.internal.Contexts
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
-fun LoginUserScreen(modifier: Modifier = Modifier, navController: NavHostController, paddingValues: PaddingValues) {
+fun LoginUserScreen(modifier: Modifier = Modifier,backStack: NavBackStack, paddingValues: PaddingValues) {
 
     val context = LocalContext.current
     val viewModel = koinViewModel<LoginViewModel>()
@@ -76,17 +77,15 @@ fun LoginUserScreen(modifier: Modifier = Modifier, navController: NavHostControl
                 }
 
                 is AuthEffect.Navigate -> {
-                    if (effect.route == Routes.Tabs) {
-                        navController.navigate(effect.route) {
-                            popUpTo(Routes.SignUp) {
-                                inclusive = true
-                            }
-                        }
-                    } else if (effect.route == "Sign_Out"){
+                 if (effect.route == NavGraphItems.LoginScreen){
                         println("Sign Out")
-                    } else {
-                        navController.navigate(effect.route) {
-                        }
+                    } else if (effect.route == NavGraphItems.ChatBotScreen){
+                        backStack.clear()
+                        backStack.add(effect.route)
+                    }else if (effect.route == NavGraphItems.OtpScreen){
+                       println("Login screen")
+                    }else {
+                       backStack.add(effect.route)
                     }
 
                 }
@@ -105,9 +104,9 @@ fun LoginUserScreen(modifier: Modifier = Modifier, navController: NavHostControl
         onEmailChange = { viewModel.handleIntents(LoginEvents.UpdateEmail(it)) },
         onPasswordChange = { viewModel.handleIntents(LoginEvents.UpdatePassword(it)) },
         onPasswordVisibilityToggle = { viewModel.handleIntents(LoginEvents.PasswordVisible) },
-        onForgotPasswordClick = { viewModel.sendEffect(AuthEffect.Navigate(Routes.Otp)) },
+        onForgotPasswordClick = { viewModel.sendEffect(AuthEffect.Navigate(NavGraphItems.ForgotPasswordScreen)) },
         onLoginClick = { viewModel.handleIntents(LoginEvents.LoginUser) },
-        onSignUpClick = { viewModel.sendEffect(AuthEffect.Navigate(Routes.SignUp)) },
+        onSignUpClick = { viewModel.sendEffect(AuthEffect.Navigate(NavGraphItems.SignUpScreen)) },
         onGoogleSignIn = {
             viewModel.handleIntents(
                 LoginEvents.GoogleSignIn(

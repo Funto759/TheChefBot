@@ -14,7 +14,7 @@ import androidx.credentials.exceptions.GetCredentialException
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.thechefbot.R
-import com.example.thechefbot.navigation.Routes
+import com.example.thechefbot.navigation.NavGraphItems
 import com.example.thechefbot.presentation.AuthFeat.effects.AuthEffect
 import com.example.thechefbot.presentation.AuthFeat.events.LoginEvents
 import com.example.thechefbot.presentation.AuthFeat.state.LoginState
@@ -171,7 +171,7 @@ class LoginViewModel (
                         )
                     ))
                 }else {
-                    sendEffect(AuthEffect.Navigate(Routes.Tabs))
+                    sendEffect(AuthEffect.Navigate(NavGraphItems.ChatBotScreen))
                 }
             }
             .addOnFailureListener { e ->
@@ -215,7 +215,7 @@ class LoginViewModel (
                     isLoading = false,
                     authenticated = false
                 )
-                sendEffect(AuthEffect.Navigate("Sign_Out"))
+                sendEffect(AuthEffect.Navigate(NavGraphItems.OtpScreen))
             } else {
                 println("User is logged in")
                 _loginUiState.value = _loginUiState.value.copy(
@@ -240,7 +240,7 @@ class LoginViewModel (
                                 success, message ->
                             if (success){
                                 println("User created successfully")
-                                sendEffect(AuthEffect.Navigate(Routes.Tabs))
+                                sendEffect(AuthEffect.Navigate(NavGraphItems.ChatBotScreen))
 //                                handleIntents(LoginEvents.NavigateToHomeScreen)
                             }else{
                                 println("User creation failed")
@@ -413,7 +413,7 @@ class LoginViewModel (
                 fullName = events.user.full_name,
                 bio = events.user.bio
             ){ok,mess ->
-                if (ok) { sendEffect(AuthEffect.Navigate(Routes.Tabs)) }
+                if (ok) { sendEffect(AuthEffect.Navigate(NavGraphItems.ChatBotScreen)) }
             }
         }
     }

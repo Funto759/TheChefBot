@@ -32,7 +32,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
-import com.example.thechefbot.navigation.Routes
+import androidx.navigation3.runtime.NavBackStack
+import com.example.thechefbot.navigation.NavGraphItems
 import com.example.thechefbot.presentation.AuthFeat.effects.AuthEffect
 import com.example.thechefbot.presentation.AuthFeat.events.LoginEvents
 import com.example.thechefbot.presentation.AuthFeat.model.LoginViewModel
@@ -49,7 +50,7 @@ import org.koin.androidx.compose.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SettingsMainScreen(navHostController: NavHostController,onSignOut : (Boolean) -> Unit = {}) {
+fun SettingsMainScreen( backStack: NavBackStack,onSignOut : (Boolean) -> Unit = {}) {
     var pushNotificationsEnabled by rememberSaveable { mutableStateOf(true) }
 
     val viewModel = koinViewModel<LoginViewModel>()
@@ -63,9 +64,9 @@ fun SettingsMainScreen(navHostController: NavHostController,onSignOut : (Boolean
             when(effect){
                 is SettingsEffects.NavigateTo -> {
                     if (effect.route != null) {
-                        navHostController.navigate(effect.route)
+                        backStack.add(effect.route)
                     }else{
-                        navHostController.popBackStack()
+                        backStack.removeLastOrNull()
                     }
                 }
                 is SettingsEffects.ShowToast -> {
@@ -79,10 +80,11 @@ fun SettingsMainScreen(navHostController: NavHostController,onSignOut : (Boolean
         viewModel.effects.collect { effect ->
             when(effect){
                 is AuthEffect.Navigate -> {
-                    if (effect.route == "Sign_Out") {
-                        onSignOut(true)
+                    if (effect.route == NavGraphItems.OtpScreen) {
+                        backStack.clear()
+                        backStack.add(NavGraphItems.LoginScreen)
                     }else{
-                        navHostController.navigate(effect.route)
+                       backStack.add(effect.route)
                     }
                 }
                 is AuthEffect.Toast-> {
@@ -101,7 +103,7 @@ fun SettingsMainScreen(navHostController: NavHostController,onSignOut : (Boolean
         onDarkModeToggle = { settingsViewModel.handleIntents(SettingEvents.ToggleTheme(it)) },
         onSignOutClick = { viewModel.handleIntents(LoginEvents.SignOut(context = context)) },
         onBackClick = { settingsViewModel.sendEffects(SettingsEffects.NavigateTo(null)) },
-        onUserProfileClick = {settingsViewModel.sendEffects(SettingsEffects.NavigateTo(Routes.UserProfile))}
+        onUserProfileClick = {settingsViewModel.sendEffects(SettingsEffects.NavigateTo(NavGraphItems.UserProfileScreen))}
     )
 }
 

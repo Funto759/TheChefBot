@@ -13,7 +13,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.navigation.compose.rememberNavController
-import com.example.thechefbot.navigation.NavigationGuide
+import com.example.thechefbot.navigation.NavigationGraph
 import com.example.thechefbot.presentation.ChatBotFeat.model.ThemePrefs
 import com.example.thechefbot.presentation.SettingsFeat.model.SettingsViewModel
 import com.example.thechefbot.presentation.splashScreenFeat.ChefBotSplashScreen
@@ -49,7 +49,7 @@ class MainActivity : ComponentActivity() {
                     )
                 } else {
 
-                    NavigationGuide(navController)
+                    NavigationGraph()
                 }
             }
         }

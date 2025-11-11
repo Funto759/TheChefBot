@@ -33,6 +33,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
+import androidx.navigation3.runtime.NavBackStack
 import com.example.thechefbot.R
 import com.example.thechefbot.presentation.SettingsFeat.data.AppUser
 import com.example.thechefbot.presentation.SettingsFeat.effects.SettingsEffects
@@ -44,7 +45,7 @@ import org.koin.androidx.compose.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ProfileMainScreen(modifier: Modifier = Modifier,navHostController: NavHostController) {
+fun ProfileMainScreen(modifier: Modifier = Modifier, backStack: NavBackStack) {
 
     val viewModel = koinViewModel<SettingsViewModel>()
     val profileUiState by viewModel.profileUiState.collectAsState()
@@ -55,9 +56,9 @@ fun ProfileMainScreen(modifier: Modifier = Modifier,navHostController: NavHostCo
             when(effect){
                 is SettingsEffects.NavigateTo -> {
                     if (effect.route != null) {
-                        navHostController.navigate(effect.route)
+                        backStack.add(effect.route)
                     }else{
-                        navHostController.popBackStack()
+                        backStack.removeLastOrNull()
                     }
                 }
                 is SettingsEffects.ShowToast -> {

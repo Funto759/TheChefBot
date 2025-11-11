@@ -44,7 +44,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
-import com.example.thechefbot.navigation.Routes
+import androidx.navigation3.runtime.NavBackStack
+import com.example.thechefbot.navigation.NavGraphItems
 import com.example.thechefbot.presentation.AuthFeat.effects.AuthEffect
 import com.example.thechefbot.presentation.AuthFeat.model.LoginViewModel
 
@@ -52,7 +53,7 @@ import okhttp3.Route
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
-fun ForgotPasswordScreen( navController: NavHostController, paddingValues: PaddingValues){
+fun ForgotPasswordScreen(backStack: NavBackStack, paddingValues: PaddingValues){
 
     val viewModel = koinViewModel<LoginViewModel>()
     val context = LocalContext.current
@@ -61,10 +62,11 @@ fun ForgotPasswordScreen( navController: NavHostController, paddingValues: Paddi
         viewModel.effects.collect {
             when (it) {
                 is AuthEffect.Navigate -> {
-                    if (it.route == "Sign_Out"){
-                        println("Sign Out")
-                    }else {
-                        navController.navigate(it.route)
+                    if(it.route == NavGraphItems.OtpScreen){
+                        println("Otp screen")
+                    } else {
+                        backStack.clear()
+                        backStack.add(it.route)
                     }
                 }
 
@@ -90,7 +92,7 @@ fun ForgotPasswordScreen( navController: NavHostController, paddingValues: Paddi
 
         if(otpText.length == 6) {
             Button(onClick = {
-                viewModel.sendEffect(AuthEffect.Navigate(Routes.Login))
+                viewModel.sendEffect(AuthEffect.Navigate(NavGraphItems.LoginScreen))
             }) {
                 Text(
                     text = "Submit"

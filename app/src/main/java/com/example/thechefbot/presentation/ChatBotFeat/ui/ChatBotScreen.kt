@@ -34,8 +34,8 @@ import androidx.compose.ui.platform.SoftwareKeyboardController
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
-import com.example.thechefbot.navigation.Routes
-
+import androidx.navigation3.runtime.NavBackStack
+import com.example.thechefbot.navigation.NavGraphItems
 import com.example.thechefbot.presentation.ChatBotFeat.util.DrawerContentView
 import com.example.thechefbot.presentation.ChatBotFeat.util.ImagePickerMenu
 import com.example.thechefbot.presentation.ChatBotFeat.util.InitialConversationScreen
@@ -60,7 +60,7 @@ import org.koin.androidx.compose.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ChatBotScreen(modifier: Modifier = Modifier, navHostController: NavHostController) {
+fun ChatBotScreen(modifier: Modifier = Modifier, backStack: NavBackStack) {
     val viewModel = koinViewModel<RecipeViewModel>()
     val chefUiState by viewModel.chefUiState.collectAsStateWithLifecycle()
     val messages by viewModel.messagesForActiveSession.collectAsStateWithLifecycle()
@@ -77,7 +77,7 @@ fun ChatBotScreen(modifier: Modifier = Modifier, navHostController: NavHostContr
         viewModel.effects.collect { effects ->
             when(effects){
                 is ChatBotEffects.NavigateTo -> {
-                    navHostController.navigate(effects.route)
+                    backStack.add(effects.route)
                 }
                 is ChatBotEffects.ShowToast -> {
                     Toast.makeText(context, effects.message, Toast.LENGTH_SHORT).show()
@@ -141,7 +141,7 @@ fun ChatBotScreen(modifier: Modifier = Modifier, navHostController: NavHostContr
             viewModel.handleEvent(ChefScreenEvents.CreateNewSession)
             scope.launch { drawerState.close() }
         },
-        onSettingsClicked = { viewModel.sendEffects(ChatBotEffects.NavigateTo(Routes.Profile)) },
+        onSettingsClicked = { viewModel.sendEffects(ChatBotEffects.NavigateTo(NavGraphItems.SettingScreen)) },
         showDeleteDialog = { viewModel.handleEvent(ChefScreenEvents.UpdateShowDialogStatus(true,null)) },
         sessionToDelete = { viewModel.handleEvent(ChefScreenEvents.UpdateShowDialogStatus(true, it)) },
         selectedImages = chefUiState.selectedImages,
