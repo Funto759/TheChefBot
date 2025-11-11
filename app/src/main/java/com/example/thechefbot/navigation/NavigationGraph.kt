@@ -89,24 +89,3 @@ fun NavigationGraph(modifier: Modifier = Modifier) {
 
 
 
-sealed interface NavGraphItems{
-
-    @Serializable
-    data object LoginScreen : NavKey
-    @Serializable
-    data object SignUpScreen : NavKey
-    @Serializable
-    data object ForgotPasswordScreen : NavKey
-    @Serializable
-    data object OtpScreen : NavKey
-
-    @Serializable
-    data object ChatBotScreen : NavKey
-    @Serializable
-    data object SettingScreen : NavKey
-    @Serializable
-    data object UserProfileScreen : NavKey
-
-
-
-}
